@@ -1,1 +1,43 @@
 /* You can add global styles to this file, and also import other style files */
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+.card {
+  display: block;
+  max-width: 67%;
+  margin: auto;
+
+  // background: #e3e3e3;
+  padding: 48px;
+  border-radius: 16px;
+  margin-top: 1em;
+  // border-style: solid;
+  // border-width: 1px;
+  // border: solid 1px ;
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  h1 {
+    margin-bottom: 32px;
+  }
+}
+.center {
+  display: flex;
+  justify-content: center;
+}
+
+.margin-top {
+  margin-top: 16px !important;
+}
+
+.text-center {
+  text-align: center;
+}
