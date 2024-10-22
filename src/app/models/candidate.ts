@@ -6,12 +6,12 @@ export interface Candidate {
   firstName?: string;
   lastName?: string;
   email: string;
-  phone?: number;
-  dob?: Date;
+  phone?: string;
+  dob?: any;
   gender?: string;
   address?: string;
   courseInfo?: CourseInfo[];
-  payments?: CandidatePayment[];
+  payments?: (CandidatePayment | unknown)[];
   referralType?: string;
   referralName?: string;
   healthCondition?: string[];

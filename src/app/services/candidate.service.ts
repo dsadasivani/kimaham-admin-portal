@@ -3,6 +3,7 @@ import {
   collection,
   doc,
   Firestore,
+  getDoc,
   getDocs,
   setDoc,
 } from '@angular/fire/firestore';
@@ -15,9 +16,12 @@ import { CandidatePayment } from '../models/candidate-payment';
 export class CandidateService {
   firestore = inject(Firestore);
 
-  addCandidate(candidate: Candidate): Promise<void> {
+  addOrUpdateCandidate(
+    candidate: Candidate,
+    mergeFlag: boolean
+  ): Promise<void> {
     const ref = doc(this.firestore, 'candidates', candidate.email);
-    return setDoc(ref, candidate);
+    return setDoc(ref, candidate, { merge: mergeFlag });
   }
   addPayment(candidateId: string, payment: CandidatePayment): Promise<void> {
     const paymentRef = doc(
@@ -36,5 +40,19 @@ export class CandidateService {
     })) as Candidate[];
 
     return candidates;
+  }
+
+  async getCandidateById(candidateId: string): Promise<Candidate | undefined> {
+    const candidateRef = doc(this.firestore, 'candidates', candidateId);
+    const querySnapshot = await getDoc(candidateRef);
+    if (querySnapshot.exists()) {
+      return {
+        email: querySnapshot.id,
+        ...querySnapshot.data(),
+      } as Candidate;
+    } else {
+      console.log('No such candidate found!');
+      return undefined;
+    }
   }
 }

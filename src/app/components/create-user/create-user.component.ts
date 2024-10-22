@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,13 +10,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatRippleModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 import {
   FormArray,
-  FormBuilder,
-  FormControl,
   FormGroup,
   NonNullableFormBuilder,
   ReactiveFormsModule,
@@ -24,6 +22,9 @@ import {
 } from '@angular/forms';
 import { CandidateService } from '../../services/candidate.service';
 import { NotificationService } from '../../services/notification.service';
+import { Candidate } from '../../models/candidate';
+import { Timestamp } from 'firebase/firestore';
+import { calculateAge } from '../../utilities/utility';
 
 @Component({
   selector: 'app-create-user',
@@ -47,7 +48,10 @@ import { NotificationService } from '../../services/notification.service';
     <div class="card text-center" matRipple [matRippleRadius]="20">
       <h2 class="heading" align="center">Candidate On-boarding</h2>
       <mat-divider></mat-divider>
-      <form [formGroup]="newCandidateForm" (ngSubmit)="createCandidate()">
+      <form
+        [formGroup]="newCandidateForm"
+        (ngSubmit)="createOrUpdateCandidate()"
+      >
         <h3 class="side-heading" align="left">
           <mat-icon class="side-heading-icon">tag</mat-icon>Personal
           Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
@@ -96,7 +100,7 @@ import { NotificationService } from '../../services/notification.service';
             @if (dob?.hasError('required')) {
             <mat-hint>MM/DD/YYYY</mat-hint>
             }@else {
-            <mat-hint style="color: darkgreen;">{{ calculateAge() }}</mat-hint>
+            <mat-hint style="color: darkgreen;">{{ getAge() }}</mat-hint>
             }
 
             <mat-datepicker-toggle
@@ -234,12 +238,12 @@ import { NotificationService } from '../../services/notification.service';
             <mat-label>Pre-existing Conditions</mat-label>
             <mat-select formControlName="healthCondition" multiple>
               <mat-select-trigger>
-                {{healthCondition.value?.[0] || ''}}
-                @if ((healthCondition.value?.length || 0) > 1) {
+                {{healthCondition?.value?.[0] || ''}}
+                @if ((healthCondition?.value?.length || 0) > 1) {
                 <span class="example-additional-selection">
-                  (+{{ (healthCondition.value?.length || 0) - 1 }}
+                  (+{{ (healthCondition?.value?.length || 0) - 1 }}
                   {{
-                    healthCondition.value?.length === 2 ? 'other' : 'others'
+                    healthCondition?.value?.length === 2 ? 'other' : 'others'
                   }})
                 </span>
                 }
@@ -264,7 +268,9 @@ import { NotificationService } from '../../services/notification.service';
           ></textarea>
         </mat-form-field>
         <div class="center margin-top">
-          <button mat-flat-button class="submit-button">Create</button>
+          <button mat-flat-button class="submit-button">
+            {{ isEditMode ? 'Update' : 'Create' }}
+          </button>
         </div>
       </form>
     </div>
@@ -284,21 +290,80 @@ import { NotificationService } from '../../services/notification.service';
     font-size: 3vh;
     font-weight: 100;
     padding: 1vh 0em;
-    // text-underline-offset: 5px;
-    // text-decoration: underline;
-    // text-decoration-thickness: 1px;
   }
   mat-divider {
     height: 1em;
   }
   `,
 })
-export class CreateUserComponent {
+export class CreateUserComponent implements OnInit {
   fb = inject(NonNullableFormBuilder);
   candidateService = inject(CandidateService);
   notificationService = inject(NotificationService);
   routerService = inject(Router);
+  route = inject(ActivatedRoute);
+  isEditMode = false;
+  candidateId: string | null = null;
   separatorKeysCodes: number[] = [ENTER, COMMA];
+
+  ngOnInit(): void {
+    this.route.paramMap.subscribe((params) => {
+      this.candidateId = params.get('id');
+      this.isEditMode = !!this.candidateId;
+      if (this.isEditMode) {
+        this.loadCandidateData();
+      }
+    });
+  }
+
+  async loadCandidateData() {
+    if (!this.candidateId) return;
+
+    try {
+      this.notificationService.showLoading();
+      const candidateData = await this.candidateService.getCandidateById(
+        this.candidateId
+      );
+      if (!candidateData) {
+        return;
+      }
+      this.loadCandidateFormData(candidateData);
+      this.notificationService.hideLoading();
+    } catch (error) {
+      this.notificationService.error('Error loading candidate data');
+    }
+  }
+  loadCandidateFormData(candidateData: Candidate) {
+    this.newCandidateForm.setValue({
+      firstName: candidateData.firstName || '',
+      lastName: candidateData.lastName || '',
+      email: candidateData.email || '',
+      phone: candidateData.phone || '',
+      dob:
+        candidateData.dob instanceof Timestamp
+          ? candidateData.dob.toDate()
+          : candidateData.dob || '',
+      gender: candidateData.gender || '',
+      address: candidateData.address || '',
+      courseInfo:
+        candidateData.courseInfo?.map((info) => ({
+          course: info.course || '',
+          proficiency: info.proficiency || '',
+          admissionDate:
+            info.admissionDate instanceof Timestamp
+              ? info.admissionDate.toDate()
+              : info.admissionDate || '',
+          endDate: info.endDate || '',
+          courseFee: info.courseFee || 0,
+          status: info.status || '',
+        })) || [],
+      payments: candidateData.payments || [],
+      referralType: candidateData.referralType || '',
+      referralName: candidateData.referralName || '',
+      healthCondition: candidateData.healthCondition || [],
+      healthConditionDesc: candidateData.healthConditionDesc || '',
+    });
+  }
 
   coursesList = signal([
     { key: 'bharatanatyam', value: 'Bharatanatyam ' },
@@ -334,24 +399,24 @@ export class CreateUserComponent {
     firstName: ['', Validators.required],
     lastName: [''],
     email: ['', [Validators.required, Validators.email]],
-    phone: [, Validators.required],
-    dob: [, Validators.required],
+    phone: ['', Validators.required],
+    dob: ['', Validators.required],
     gender: ['', Validators.required],
     address: [''],
     courseInfo: this.fb.array([
       this.fb.group({
         course: ['', Validators.required],
         proficiency: ['', Validators.required],
-        admissionDate: [, Validators.required],
-        endDate: [],
-        courseFee: [, Validators.required],
+        admissionDate: ['', Validators.required],
+        endDate: [''],
+        courseFee: [0, Validators.required],
         status: ['ACTIVE'],
       }),
     ]),
-    payments: [],
+    payments: this.fb.array([]),
     referralType: [''],
     referralName: [''],
-    healthCondition: [, Validators.required],
+    healthCondition: [[''], Validators.required],
     healthConditionDesc: [''],
   });
 
@@ -367,10 +432,10 @@ export class CreateUserComponent {
   proficiency = this.courseInfo.get('proficiency');
   admissionDate = this.courseInfo.get('admissionDate');
   courseFee = this.courseInfo.get('courseFee');
-  healthCondition = this.newCandidateForm.get('healthCondition') as FormControl;
+  healthCondition = this.newCandidateForm.get('healthCondition');
   today: any = new Date();
 
-  async createCandidate() {
+  async createOrUpdateCandidate() {
     this.newCandidateForm.markAllAsTouched();
     const { email, courseInfo, ...data } = this.newCandidateForm.value;
     const courseInfoObj = courseInfo?.at(0);
@@ -391,61 +456,30 @@ export class CreateUserComponent {
     }
     try {
       this.notificationService.showLoading();
-      await this.candidateService.addCandidate({ email, courseInfo, ...data });
-      this.notificationService.success('Candidate registration success !!');
-      this.newCandidateForm.reset();
-      this.routerService.navigate(['list-users']);
+      await this.candidateService.addOrUpdateCandidate(
+        {
+          email,
+          courseInfo,
+          ...data,
+        },
+        this.isEditMode
+      );
+      this.notificationService.success(
+        this.isEditMode
+          ? 'Candidate details updated successfully !!'
+          : 'Candidate registration success !!'
+      );
+      if (!this.isEditMode) {
+        this.newCandidateForm.reset();
+        this.routerService.navigate(['list-users']);
+      }
     } catch (error: any) {
       this.notificationService.firebaseError(error);
     } finally {
       this.notificationService.hideLoading();
     }
   }
-  calculateAge(): string {
-    const dob = this.newCandidateForm.get('dob')?.value;
-    if (!dob) {
-      return '';
-    }
-    const today = new Date();
-    const birthDate = new Date(dob);
-
-    let years = today.getFullYear() - birthDate.getFullYear();
-    let months = today.getMonth() - birthDate.getMonth();
-    let days = today.getDate() - birthDate.getDate();
-
-    if (days < 0) {
-      months--;
-      const daysInPreviousMonth = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        0
-      ).getDate();
-      days += daysInPreviousMonth;
-    }
-
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-
-    let ageString = '';
-
-    if (years > 0) {
-      ageString += `${years} year${years > 1 ? 's' : ''}`;
-    }
-
-    if (months > 0) {
-      ageString += ageString
-        ? `, ${months} month${months > 1 ? 's' : ''}`
-        : `${months} month${months > 1 ? 's' : ''}`;
-    }
-
-    if (days > 0) {
-      ageString += ageString
-        ? `, ${days} day${days > 1 ? 's' : ''}`
-        : `${days} day${days > 1 ? 's' : ''}`;
-    }
-
-    return (ageString || '0 days') + ' old'; // If all values are zero
+  getAge(): string {
+    return calculateAge(this.newCandidateForm.get('dob')?.value);
   }
 }
