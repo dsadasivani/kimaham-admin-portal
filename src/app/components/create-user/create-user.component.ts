@@ -46,7 +46,9 @@ import { calculateAge } from '../../utilities/utility';
   ],
   template: `
     <div class="card text-center" matRipple [matRippleRadius]="20">
-      <h2 class="heading" align="center">Candidate On-boarding</h2>
+      <h2 class="heading" align="center">
+        {{ isEditMode ? 'Candidate Details' : 'Candidate On-boarding' }}
+      </h2>
       <mat-divider></mat-divider>
       <form
         [formGroup]="newCandidateForm"
