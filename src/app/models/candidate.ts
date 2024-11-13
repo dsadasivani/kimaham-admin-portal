@@ -11,7 +11,7 @@ export interface Candidate {
   gender?: string;
   address?: string;
   courseInfo?: CourseInfo[];
-  payments?: (CandidatePayment | unknown)[];
+  payments?: CandidatePayment[];
   referralType?: string;
   referralName?: string;
   healthCondition?: string[];

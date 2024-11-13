@@ -1,4 +1,5 @@
 export interface CourseInfo {
+  id: string;
   course?: string;
   proficiency?: string;
   admissionDate?: any;

@@ -1,5 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,6 +16,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatRippleModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
@@ -25,6 +32,8 @@ import { NotificationService } from '../../services/notification.service';
 import { Candidate } from '../../models/candidate';
 import { Timestamp } from 'firebase/firestore';
 import { calculateAge } from '../../utilities/utility';
+import { v4 as uuidv4 } from 'uuid';
+import { CandidatePayment } from '../../models/candidate-payment';
 
 @Component({
   selector: 'app-create-user',
@@ -43,6 +52,7 @@ import { calculateAge } from '../../utilities/utility';
     MatRippleModule,
     MatAutocompleteModule,
     MatChipsModule,
+    MatTableModule,
   ],
   template: `
     <div class="card text-center" matRipple [matRippleRadius]="20">
@@ -50,10 +60,7 @@ import { calculateAge } from '../../utilities/utility';
         {{ isEditMode ? 'Candidate Details' : 'Candidate On-boarding' }}
       </h2>
       <mat-divider></mat-divider>
-      <form
-        [formGroup]="newCandidateForm"
-        (ngSubmit)="createOrUpdateCandidate()"
-      >
+      <form [formGroup]="newCandidateForm">
         <h3 class="side-heading" align="left">
           <mat-icon class="side-heading-icon">tag</mat-icon>Personal
           Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
@@ -136,23 +143,31 @@ import { calculateAge } from '../../utilities/utility';
             placeholder="Ex. Koramangala, ..."
           ></textarea>
         </mat-form-field>
-        <h3 class="side-heading" align="left">
-          <mat-icon class="side-heading-icon">tag</mat-icon>Course Info<mat-icon
-            class="side-heading-icon"
-            >arrow_right</mat-icon
-          >
-        </h3>
-        <div class="row" [formGroup]="courseInfo">
+        <div class="add-course-container">
+          <h3 class="side-heading" align="left">
+            <mat-icon class="side-heading-icon">tag</mat-icon>Course
+            Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
+          </h3>
+          <button mat-icon-button class="submit-button" (click)="addCourse()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+        <div
+          *ngFor="let course of courseInfoArray.controls; let i = index"
+          [formGroup]="course"
+          class="row"
+        >
           <mat-form-field>
             <mat-label>Course</mat-label>
             <mat-select formControlName="course">
               <mat-option
                 *ngFor="let course of coursesList()"
                 [value]="course.key"
-                >{{ course.value }}</mat-option
               >
+                {{ course.value }}
+              </mat-option>
             </mat-select>
-            <mat-error *ngIf="course?.hasError('required')">
+            <mat-error *ngIf="course.get('course')?.hasError('required')">
               Select valid course
             </mat-error>
           </mat-form-field>
@@ -162,10 +177,11 @@ import { calculateAge } from '../../utilities/utility';
               <mat-option
                 *ngFor="let proficiency of proficiencyList()"
                 [value]="proficiency.key"
-                >{{ proficiency.value }}</mat-option
               >
+                {{ proficiency.value }}
+              </mat-option>
             </mat-select>
-            <mat-error *ngIf="proficiency?.hasError('required')">
+            <mat-error *ngIf="course.get('proficiency')?.hasError('required')">
               Please select proficiency
             </mat-error>
           </mat-form-field>
@@ -178,11 +194,13 @@ import { calculateAge } from '../../utilities/utility';
             />
             <mat-hint>MM/DD/YYYY</mat-hint>
             <mat-datepicker-toggle
-              matIconSuffix
+              matSuffix
               [for]="picker"
             ></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
-            <mat-error *ngIf="admissionDate?.hasError('required')">
+            <mat-error
+              *ngIf="course.get('admissionDate')?.hasError('required')"
+            >
               Admission Date is required
             </mat-error>
           </mat-form-field>
@@ -195,7 +213,7 @@ import { calculateAge } from '../../utilities/utility';
             />
             <mat-hint>MM/DD/YYYY</mat-hint>
             <mat-datepicker-toggle
-              matIconSuffix
+              matSuffix
               [for]="endDatePicker"
             ></mat-datepicker-toggle>
             <mat-datepicker #endDatePicker></mat-datepicker>
@@ -204,10 +222,109 @@ import { calculateAge } from '../../utilities/utility';
             <mat-label>Course Fee</mat-label>
             <mat-icon matPrefix>currency_rupee</mat-icon>
             <input type="number" matInput formControlName="courseFee" />
-            <mat-error *ngIf="courseFee?.hasError('required')">
+            <mat-error *ngIf="course.get('courseFee')?.hasError('required')">
               Course Fee is required
             </mat-error>
           </mat-form-field>
+        </div>
+        <div class="add-course-container" formArrayName="payments">
+          <h3 class="side-heading" align="left">
+            <mat-icon class="side-heading-icon">tag</mat-icon>Payments
+            Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
+          </h3>
+          <button mat-icon-button class="submit-button" (click)="addPayment()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+        <div style="overflow: auto;" class="mat-elevation-z8">
+          <table mat-table [dataSource]="paymentsDataSource">
+            <!-- Course Selector Column -->
+            <ng-container matColumnDef="course">
+              <th mat-header-cell *matHeaderCellDef>Course</th>
+              <td mat-cell *matCellDef="let payment" [formGroup]="payment">
+                <mat-form-field
+                  appearance="fill"
+                  *ngIf="!payment.get('courseId')?.disabled; else courseLabel"
+                >
+                  <mat-select
+                    formControlName="courseId"
+                    placeholder="Select Course"
+                  >
+                    <mat-option
+                      *ngFor="let course of courseInfoArray.controls"
+                      [value]="course.get('id')?.value"
+                    >
+                      {{ transformCourseId(course.get('id')?.value) }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <ng-template #courseLabel>
+                  {{ transformCourseId(payment.get('courseId')?.value) }}
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Amount Input Column -->
+            <ng-container matColumnDef="amount">
+              <th mat-header-cell *matHeaderCellDef>Amount</th>
+              <td mat-cell *matCellDef="let payment" [formGroup]="payment">
+                <mat-form-field
+                  appearance="fill"
+                  *ngIf="!payment.get('amount')?.disabled; else amountLabel"
+                >
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="amount"
+                    placeholder="Enter Amount"
+                  />
+                </mat-form-field>
+                <ng-template #amountLabel>
+                  {{ payment.get('amount')?.value }}
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Delete Column -->
+            <ng-container matColumnDef="delete">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let payment; let i = index">
+                <div
+                  *ngIf="!payment.get('courseId')?.disabled; else actionIcon"
+                >
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="removePayment(i)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+                <ng-template #actionIcon>
+                  <mat-icon style="color: green;">check_circle</mat-icon>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Header and Row Definitions -->
+            <tr
+              mat-header-row
+              *matHeaderRowDef="['course', 'amount', 'delete']"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: ['course', 'amount', 'delete']"
+            ></tr>
+          </table>
+          <div class="inner-button">
+            <button
+              mat-raised-button
+              class="submit-button"
+              (click)="saveNewPayments()"
+            >
+              <mat-icon>save</mat-icon>Save Payment
+            </button>
+          </div>
         </div>
         <h3 class="side-heading" align="left">
           <mat-icon class="side-heading-icon">tag</mat-icon>Referral
@@ -270,7 +387,11 @@ import { calculateAge } from '../../utilities/utility';
           ></textarea>
         </mat-form-field>
         <div class="center margin-top">
-          <button mat-flat-button class="submit-button">
+          <button
+            mat-flat-button
+            class="submit-button"
+            (click)="createOrUpdateCandidate()"
+          >
             {{ isEditMode ? 'Update' : 'Create' }}
           </button>
         </div>
@@ -293,20 +414,36 @@ import { calculateAge } from '../../utilities/utility';
     font-weight: 100;
     padding: 1vh 0em;
   }
+  .inner-button {
+    margin: 1em;
+    overflow-y: hidden;
+    display: flex;
+    justify-content: flex-end;
+  }
   mat-divider {
     height: 1em;
+  }
+  .add-course-container {
+    display: flex;
+  align-items: center;
+  justify-content: space-between;
   }
   `,
 })
 export class CreateUserComponent implements OnInit {
+  transformCourseId(courseId: string): string {
+    return courseId.replace('_', ' + ');
+  }
   fb = inject(NonNullableFormBuilder);
   candidateService = inject(CandidateService);
   notificationService = inject(NotificationService);
   routerService = inject(Router);
   route = inject(ActivatedRoute);
+  cdr = inject(ChangeDetectorRef);
   isEditMode = false;
   candidateId: string | null = null;
   separatorKeysCodes: number[] = [ENTER, COMMA];
+  paymentsDataSource: any[] = [];
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -315,6 +452,7 @@ export class CreateUserComponent implements OnInit {
       if (this.isEditMode) {
         this.loadCandidateData();
       }
+      this.paymentsDataSource = [...this.payments.controls];
     });
   }
 
@@ -332,11 +470,99 @@ export class CreateUserComponent implements OnInit {
       this.loadCandidateFormData(candidateData);
       this.notificationService.hideLoading();
     } catch (error) {
+      console.log(error);
       this.notificationService.error('Error loading candidate data');
     }
   }
+  // loadCandidateFormData(candidateData: Candidate) {
+  //   this.newCandidateForm.setValue({
+  //     firstName: candidateData.firstName || '',
+  //     lastName: candidateData.lastName || '',
+  //     email: candidateData.email || '',
+  //     phone: candidateData.phone || '',
+  //     dob:
+  //       candidateData.dob instanceof Timestamp
+  //         ? candidateData.dob.toDate()
+  //         : candidateData.dob || '',
+  //     gender: candidateData.gender || '',
+  //     address: candidateData.address || '',
+  //     courseInfo:
+  //       candidateData.courseInfo?.map((info) => ({
+  //         id: info.id,
+  //         course: info.course || '',
+  //         proficiency: info.proficiency || '',
+  //         admissionDate:
+  //           info.admissionDate instanceof Timestamp
+  //             ? info.admissionDate.toDate()
+  //             : info.admissionDate || '',
+  //         endDate: info.endDate || '',
+  //         courseFee: info.courseFee || 0,
+  //         status: info.status || '',
+  //       })) || [],
+  //     payments:
+  //       candidateData.payments?.map((pay) => ({
+  //         id: pay.id,
+  //         courseId: pay.courseId || '',
+  //         amount: pay.amount || 0,
+  //         date: pay.date || '',
+  //       })) || [],
+  //     referralType: candidateData.referralType || '',
+  //     referralName: candidateData.referralName || '',
+  //     healthCondition: candidateData.healthCondition || [],
+  //     healthConditionDesc: candidateData.healthConditionDesc || '',
+  //   });
+  // }
+
   loadCandidateFormData(candidateData: Candidate) {
-    this.newCandidateForm.setValue({
+    // Clear existing form arrays to prevent mismatch issues
+    const courseInfoArray = this.newCandidateForm.get(
+      'courseInfo'
+    ) as FormArray;
+    const paymentsArray = this.newCandidateForm.get('payments') as FormArray;
+    courseInfoArray.clear();
+    paymentsArray.clear();
+
+    // Populate courseInfo form array
+    candidateData.courseInfo?.forEach((info) => {
+      courseInfoArray.push(
+        this.fb.group({
+          id: [info.id],
+          course: [info.course || ''],
+          proficiency: [info.proficiency || ''],
+          admissionDate: [
+            info.admissionDate instanceof Timestamp
+              ? info.admissionDate.toDate()
+              : info.admissionDate || '',
+          ],
+          endDate: [info.endDate || ''],
+          courseFee: [info.courseFee || 0],
+          status: [info.status || ''],
+        })
+      );
+    });
+
+    // Populate payments form array
+    candidateData.payments?.forEach((pay) => {
+      paymentsArray.push(
+        this.fb.group({
+          id: [pay.id],
+          courseId: [pay.courseId || ''],
+          amount: [pay.amount || 0],
+          date: [pay.date || ''],
+          isReadOnly: true,
+        })
+      );
+    });
+    // Disable form controls for existing payments
+    paymentsArray.controls.forEach((control) => {
+      if (control.get('isReadOnly')?.value) {
+        control.get('courseId')?.disable();
+        control.get('amount')?.disable();
+      }
+    });
+    this.paymentsDataSource = [...this.payments.controls];
+    // Set the form values
+    this.newCandidateForm.patchValue({
       firstName: candidateData.firstName || '',
       lastName: candidateData.lastName || '',
       email: candidateData.email || '',
@@ -347,19 +573,6 @@ export class CreateUserComponent implements OnInit {
           : candidateData.dob || '',
       gender: candidateData.gender || '',
       address: candidateData.address || '',
-      courseInfo:
-        candidateData.courseInfo?.map((info) => ({
-          course: info.course || '',
-          proficiency: info.proficiency || '',
-          admissionDate:
-            info.admissionDate instanceof Timestamp
-              ? info.admissionDate.toDate()
-              : info.admissionDate || '',
-          endDate: info.endDate || '',
-          courseFee: info.courseFee || 0,
-          status: info.status || '',
-        })) || [],
-      payments: candidateData.payments || [],
       referralType: candidateData.referralType || '',
       referralName: candidateData.referralName || '',
       healthCondition: candidateData.healthCondition || [],
@@ -407,6 +620,7 @@ export class CreateUserComponent implements OnInit {
     address: [''],
     courseInfo: this.fb.array([
       this.fb.group({
+        id: [''],
         course: ['', Validators.required],
         proficiency: ['', Validators.required],
         admissionDate: ['', Validators.required],
@@ -427,19 +641,19 @@ export class CreateUserComponent implements OnInit {
   phone = this.newCandidateForm.get('phone');
   dob = this.newCandidateForm.get('dob');
   gender = this.newCandidateForm.get('gender');
-  courseInfo = (this.newCandidateForm.get('courseInfo') as FormArray).at(
-    0
-  ) as FormGroup;
-  course = this.courseInfo.get('course');
-  proficiency = this.courseInfo.get('proficiency');
-  admissionDate = this.courseInfo.get('admissionDate');
-  courseFee = this.courseInfo.get('courseFee');
+  // courseInfo = (this.newCandidateForm.get('courseInfo') as FormArray).at(
+  //   0
+  // ) as FormGroup;
+  // course = this.courseInfo.get('course');
+  // proficiency = this.courseInfo.get('proficiency');
+  // admissionDate = this.courseInfo.get('admissionDate');
+  // courseFee = this.courseInfo.get('courseFee');
   healthCondition = this.newCandidateForm.get('healthCondition');
   today: any = new Date();
 
   async createOrUpdateCandidate() {
     this.newCandidateForm.markAllAsTouched();
-    const { email, courseInfo, ...data } = this.newCandidateForm.value;
+    let { email, courseInfo, ...data } = this.newCandidateForm.value;
     const courseInfoObj = courseInfo?.at(0);
     if (
       !this.newCandidateForm.valid ||
@@ -457,6 +671,9 @@ export class CreateUserComponent implements OnInit {
       return;
     }
     try {
+      courseInfo?.map(
+        (course) => (course.id = `${course.course}_${course.proficiency}`)
+      );
       this.notificationService.showLoading();
       await this.candidateService.addOrUpdateCandidate(
         {
@@ -474,6 +691,8 @@ export class CreateUserComponent implements OnInit {
       if (!this.isEditMode) {
         this.newCandidateForm.reset();
         this.routerService.navigate(['list-users']);
+      } else {
+        this.loadCandidateData();
       }
     } catch (error: any) {
       this.notificationService.firebaseError(error);
@@ -483,5 +702,65 @@ export class CreateUserComponent implements OnInit {
   }
   getAge(): string {
     return calculateAge(this.newCandidateForm.get('dob')?.value);
+  }
+  addCourse() {
+    const newCourseGroup = this.fb.group({
+      id: [''],
+      course: ['', Validators.required],
+      proficiency: ['', Validators.required],
+      admissionDate: ['', Validators.required],
+      endDate: [''],
+      courseFee: [0, Validators.required],
+      status: ['ACTIVE'],
+    });
+    this.courseInfoArray.push(newCourseGroup);
+  }
+
+  get courseInfoArray(): FormArray<FormGroup> {
+    return this.newCandidateForm.get('courseInfo') as FormArray<FormGroup>;
+  }
+  addPayment() {
+    this.payments.push(
+      this.fb.group({
+        id: uuidv4(),
+        courseId: ['', Validators.required], // Dropdown to select existing course ID
+        amount: [0, Validators.required],
+        date: [new Date().toISOString(), Validators.required], // Defaults to current date
+      })
+    );
+    this.paymentsDataSource = [...this.payments.controls];
+    this.cdr.detectChanges();
+  }
+  get payments(): FormArray {
+    return this.newCandidateForm.get('payments') as FormArray;
+  }
+  removePayment(index: number) {
+    this.payments.removeAt(index);
+    this.paymentsDataSource = [...this.payments.controls];
+    this.cdr.detectChanges();
+  }
+  async saveNewPayments() {
+    const candidateId = this.newCandidateForm.get('email')?.value;
+    if (!candidateId) {
+      return;
+    }
+    // Filter payments without the 'readOnly' flag
+    const newPayments = this.payments.controls
+      .filter((payment) => !payment.get('isReadOnly')?.value)
+      .map((payment) => payment.value); // Extract the value as plain data
+
+    // Save each new payment
+    try {
+      this.notificationService.showLoading();
+      await this.candidateService.addNewPayments(
+        candidateId,
+        newPayments as CandidatePayment[]
+      );
+      this.loadCandidateData();
+    } catch (error: any) {
+      this.notificationService.firebaseError(error);
+    } finally {
+      this.notificationService.hideLoading();
+    }
   }
 }
