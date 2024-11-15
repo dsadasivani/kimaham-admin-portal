@@ -148,16 +148,21 @@ import { CandidatePayment } from '../../models/candidate-payment';
             <mat-icon class="side-heading-icon">tag</mat-icon>Course
             Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
           </h3>
-          <button mat-icon-button class="submit-button" (click)="addCourse()">
+          <button
+            *ngIf="isEditMode"
+            mat-icon-button
+            class="submit-button"
+            (click)="addCourse()"
+          >
             <mat-icon>add</mat-icon>
           </button>
         </div>
         <div
           *ngFor="let course of courseInfoArray.controls; let i = index"
           [formGroup]="course"
-          class="row"
+          class="row mat-elevation-z8 course-row"
         >
-          <mat-form-field>
+          <mat-form-field class="course-fields">
             <mat-label>Course</mat-label>
             <mat-select formControlName="course">
               <mat-option
@@ -171,7 +176,7 @@ import { CandidatePayment } from '../../models/candidate-payment';
               Select valid course
             </mat-error>
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field class="course-fields">
             <mat-label>Proficiency</mat-label>
             <mat-select formControlName="proficiency">
               <mat-option
@@ -185,7 +190,7 @@ import { CandidatePayment } from '../../models/candidate-payment';
               Please select proficiency
             </mat-error>
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field class="course-fields">
             <mat-label>Date of Admission</mat-label>
             <input
               matInput
@@ -204,7 +209,7 @@ import { CandidatePayment } from '../../models/candidate-payment';
               Admission Date is required
             </mat-error>
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field class="course-fields">
             <mat-label>End Date</mat-label>
             <input
               matInput
@@ -218,7 +223,7 @@ import { CandidatePayment } from '../../models/candidate-payment';
             ></mat-datepicker-toggle>
             <mat-datepicker #endDatePicker></mat-datepicker>
           </mat-form-field>
-          <mat-form-field>
+          <mat-form-field class="course-fields">
             <mat-label>Course Fee</mat-label>
             <mat-icon matPrefix>currency_rupee</mat-icon>
             <input type="number" matInput formControlName="courseFee" />
@@ -227,104 +232,133 @@ import { CandidatePayment } from '../../models/candidate-payment';
             </mat-error>
           </mat-form-field>
         </div>
-        <div class="add-course-container" formArrayName="payments">
-          <h3 class="side-heading" align="left">
-            <mat-icon class="side-heading-icon">tag</mat-icon>Payments
-            Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
-          </h3>
-          <button mat-icon-button class="submit-button" (click)="addPayment()">
-            <mat-icon>add</mat-icon>
-          </button>
-        </div>
-        <div style="overflow: auto;" class="mat-elevation-z8">
-          <table mat-table [dataSource]="paymentsDataSource">
-            <!-- Course Selector Column -->
-            <ng-container matColumnDef="course">
-              <th mat-header-cell *matHeaderCellDef>Course</th>
-              <td mat-cell *matCellDef="let payment" [formGroup]="payment">
-                <mat-form-field
-                  appearance="fill"
-                  *ngIf="!payment.get('courseId')?.disabled; else courseLabel"
-                >
-                  <mat-select
-                    formControlName="courseId"
-                    placeholder="Select Course"
-                  >
-                    <mat-option
-                      *ngFor="let course of courseInfoArray.controls"
-                      [value]="course.get('id')?.value"
-                    >
-                      {{ transformCourseId(course.get('id')?.value) }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
-                <ng-template #courseLabel>
-                  {{ transformCourseId(payment.get('courseId')?.value) }}
-                </ng-template>
-              </td>
-            </ng-container>
-
-            <!-- Amount Input Column -->
-            <ng-container matColumnDef="amount">
-              <th mat-header-cell *matHeaderCellDef>Amount</th>
-              <td mat-cell *matCellDef="let payment" [formGroup]="payment">
-                <mat-form-field
-                  appearance="fill"
-                  *ngIf="!payment.get('amount')?.disabled; else amountLabel"
-                >
-                  <input
-                    matInput
-                    type="number"
-                    formControlName="amount"
-                    placeholder="Enter Amount"
-                  />
-                </mat-form-field>
-                <ng-template #amountLabel>
-                  {{ payment.get('amount')?.value }}
-                </ng-template>
-              </td>
-            </ng-container>
-
-            <!-- Delete Column -->
-            <ng-container matColumnDef="delete">
-              <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let payment; let i = index">
-                <div
-                  *ngIf="!payment.get('courseId')?.disabled; else actionIcon"
-                >
-                  <button
-                    mat-icon-button
-                    color="warn"
-                    (click)="removePayment(i)"
-                  >
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </div>
-                <ng-template #actionIcon>
-                  <mat-icon style="color: green;">check_circle</mat-icon>
-                </ng-template>
-              </td>
-            </ng-container>
-
-            <!-- Header and Row Definitions -->
-            <tr
-              mat-header-row
-              *matHeaderRowDef="['course', 'amount', 'delete']"
-            ></tr>
-            <tr
-              mat-row
-              *matRowDef="let row; columns: ['course', 'amount', 'delete']"
-            ></tr>
-          </table>
-          <div class="inner-button">
+        <div *ngIf="isEditMode">
+          <div class="add-course-container" formArrayName="payments">
+            <h3 class="side-heading" align="left">
+              <mat-icon class="side-heading-icon">tag</mat-icon>Payments
+              Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
+            </h3>
             <button
-              mat-raised-button
+              mat-icon-button
               class="submit-button"
-              (click)="saveNewPayments()"
+              (click)="addPayment()"
             >
-              <mat-icon>save</mat-icon>Save Payment
+              <mat-icon>add</mat-icon>
             </button>
           </div>
+          <div
+            style="overflow: auto; max-width: 800px; border-radius: 1em;"
+            class="mat-elevation-z8"
+            *ngIf="payments.length > 0; else noPaymentsMsg"
+          >
+            <table mat-table [dataSource]="paymentsDataSource">
+              <!-- Course Selector Column -->
+              <ng-container matColumnDef="course">
+                <th mat-header-cell *matHeaderCellDef>Course</th>
+                <td mat-cell *matCellDef="let payment" [formGroup]="payment">
+                  <mat-form-field
+                    appearance="fill"
+                    *ngIf="!payment.get('courseId')?.disabled; else courseLabel"
+                  >
+                    <mat-select
+                      formControlName="courseId"
+                      placeholder="Select Course"
+                    >
+                      <mat-option
+                        *ngFor="let course of courseInfoArray.controls"
+                        [value]="course.get('id')?.value"
+                      >
+                        {{ transformCourseId(course.get('id')?.value) }}
+                      </mat-option>
+                      <mat-option value="annual_day"> Annual Day </mat-option>
+                      <mat-option value="others">Others</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <ng-template #courseLabel>
+                    {{ transformCourseId(payment.get('courseId')?.value) }}
+                  </ng-template>
+                </td>
+              </ng-container>
+
+              <!-- Amount Input Column -->
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef>Amount</th>
+                <td mat-cell *matCellDef="let payment" [formGroup]="payment">
+                  <mat-form-field
+                    appearance="fill"
+                    *ngIf="!payment.get('amount')?.disabled; else amountLabel"
+                  >
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="amount"
+                      placeholder="Enter Amount"
+                    />
+                  </mat-form-field>
+                  <ng-template #amountLabel>
+                    {{ payment.get('amount')?.value }}
+                  </ng-template>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let payment" [formGroup]="payment">
+                  <span *ngIf="payment.get('courseId')?.disabled">
+                    {{
+                      payment.get('date')?.value | date : 'MMM dd, YYYY hh:mm a'
+                    }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Delete Column -->
+              <ng-container matColumnDef="delete">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let payment; let i = index">
+                  <div
+                    *ngIf="!payment.get('courseId')?.disabled; else actionIcon"
+                  >
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      (click)="removePayment(i)"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                  <ng-template #actionIcon>
+                    <mat-icon style="color: green;">check_circle</mat-icon>
+                  </ng-template>
+                </td>
+              </ng-container>
+
+              <!-- Header and Row Definitions -->
+              <tr
+                mat-header-row
+                *matHeaderRowDef="['course', 'amount', 'date', 'delete']"
+              ></tr>
+              <tr
+                mat-row
+                *matRowDef="
+                  let row;
+                  columns: ['course', 'amount', 'date', 'delete']
+                "
+              ></tr>
+            </table>
+            <div class="inner-button">
+              <button
+                mat-raised-button
+                class="submit-button"
+                (click)="saveNewPayments()"
+                [hidden]="!hasNewPayments"
+              >
+                <mat-icon>save</mat-icon>Save Payment
+              </button>
+            </div>
+          </div>
+          <ng-template #noPaymentsMsg>
+            <span>No payment Records..</span>
+          </ng-template>
         </div>
         <h3 class="side-heading" align="left">
           <mat-icon class="side-heading-icon">tag</mat-icon>Referral
@@ -428,11 +462,33 @@ import { CandidatePayment } from '../../models/candidate-payment';
   align-items: center;
   justify-content: space-between;
   }
+  .course-row {
+    margin: 1em 0em;
+    padding: 1em 1em 1em 1em;
+    border-radius: 0em 1em 1em 0em;
+    border-left: inset 3px;
+    column-gap: 0em !important;
+  }
+  .course-fields {
+    max-width: 80%;
+  }
+  ::ng-deep .mat-column-amount {
+  max-width: 10em; // Set desired width for the "amount" column
+}
+::ng-deep .mat-column-course {
+  width: 40%; // Set desired width for the "amount" column
+}
+::ng-deep .mat-column-date {
+  min-width: 15em;// Set desired width for the "amount" column
+}
+// ::ng-deep .mat-column-delete{
+//   width: 10%; // Set desired width for the "amount" column
+// }
   `,
 })
 export class CreateUserComponent implements OnInit {
   transformCourseId(courseId: string): string {
-    return courseId.replace('_', ' + ');
+    return `${courseId.replace('_', ' (')})`;
   }
   fb = inject(NonNullableFormBuilder);
   candidateService = inject(CandidateService);
@@ -444,8 +500,10 @@ export class CreateUserComponent implements OnInit {
   candidateId: string | null = null;
   separatorKeysCodes: number[] = [ENTER, COMMA];
   paymentsDataSource: any[] = [];
+  candidateData: any;
 
   ngOnInit(): void {
+    this.candidateData = {};
     this.route.paramMap.subscribe((params) => {
       this.candidateId = params.get('id');
       this.isEditMode = !!this.candidateId;
@@ -461,13 +519,13 @@ export class CreateUserComponent implements OnInit {
 
     try {
       this.notificationService.showLoading();
-      const candidateData = await this.candidateService.getCandidateById(
+      this.candidateData = await this.candidateService.getCandidateById(
         this.candidateId
       );
-      if (!candidateData) {
+      if (!this.candidateData) {
         return;
       }
-      this.loadCandidateFormData(candidateData);
+      this.loadCandidateFormData(this.candidateData);
       this.notificationService.hideLoading();
     } catch (error) {
       console.log(error);
@@ -653,7 +711,8 @@ export class CreateUserComponent implements OnInit {
 
   async createOrUpdateCandidate() {
     this.newCandidateForm.markAllAsTouched();
-    let { email, courseInfo, ...data } = this.newCandidateForm.value;
+    let { email, courseInfo, payments, ...data } = this.newCandidateForm.value;
+    payments = this.candidateData.payments;
     const courseInfoObj = courseInfo?.at(0);
     if (
       !this.newCandidateForm.valid ||
@@ -679,6 +738,7 @@ export class CreateUserComponent implements OnInit {
         {
           email,
           courseInfo,
+          payments,
           ...data,
         },
         this.isEditMode
@@ -738,6 +798,11 @@ export class CreateUserComponent implements OnInit {
     this.payments.removeAt(index);
     this.paymentsDataSource = [...this.payments.controls];
     this.cdr.detectChanges();
+  }
+  get hasNewPayments(): boolean {
+    return this.payments.controls.some(
+      (payment) => !payment.get('isReadOnly')?.value
+    );
   }
   async saveNewPayments() {
     const candidateId = this.newCandidateForm.get('email')?.value;
