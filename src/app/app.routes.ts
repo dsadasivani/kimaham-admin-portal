@@ -5,6 +5,7 @@ import { ListUsersComponent } from './components/list-users/list-users.component
 import { SignInComponent } from './components/user/sign-in/sign-in.component';
 import { SignUpComponent } from './components/user/sign-up/sign-up.component';
 import { ProfileComponent } from './components/user/profile/profile.component';
+import { UnderProgressComponent } from './components/under-progress/under-progress.component';
 
 export const routes: Routes = [
   {
@@ -35,5 +36,9 @@ export const routes: Routes = [
   {
     path: 'user/profile',
     component: ProfileComponent,
+  },
+  {
+    path: 'app-under-progress',
+    component: UnderProgressComponent,
   },
 ];
