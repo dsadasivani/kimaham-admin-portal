@@ -711,8 +711,8 @@ export class CreateUserComponent implements OnInit {
 
   async createOrUpdateCandidate() {
     this.newCandidateForm.markAllAsTouched();
-    let { email, courseInfo, ...data } = this.newCandidateForm.value;
-    // payments = this.candidateData.payments;
+    let { email, courseInfo, payments, ...data } = this.newCandidateForm.value;
+    payments = this.candidateData.payments ? this.candidateData.payments : [];
     const courseInfoObj = courseInfo?.at(0);
     if (
       !this.newCandidateForm.valid ||
@@ -738,6 +738,7 @@ export class CreateUserComponent implements OnInit {
         {
           email,
           courseInfo,
+          payments,
           ...data,
         },
         this.isEditMode
