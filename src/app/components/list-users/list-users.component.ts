@@ -23,7 +23,16 @@ import { RouterModule } from '@angular/router';
     <div class="card text-center">
       <h2 class="heading" align="center">List Of Candidates</h2>
       <mat-divider style="height: 1em;"></mat-divider>
-
+      @if (candidates().length === 0 && !loading) {
+      <div class="no-data-img">
+        <mat-icon style="padding: 0 2rem; font-size: 3em; height: auto;"
+          >no_accounts</mat-icon
+        >
+        <p style="    padding-top: 2%;font-size: 20px;font-weight: 100;">
+          No candidates to show...
+        </p>
+      </div>
+      } @else if (candidates().length > 0) {
       <div class="table-container">
         <table mat-table [dataSource]="candidates()" class="mat-elevation-z8">
           <!-- First Name Column -->
@@ -47,7 +56,9 @@ import { RouterModule } from '@angular/router';
           <!-- Phone Column -->
           <ng-container matColumnDef="phone">
             <th mat-header-cell *matHeaderCellDef>Phone</th>
-            <td mat-cell *matCellDef="let candidate">{{ candidate.phone }}</td>
+            <td mat-cell *matCellDef="let candidate">
+              {{ candidate.phone }}
+            </td>
           </ng-container>
 
           <!-- Course Column -->
@@ -71,15 +82,19 @@ import { RouterModule } from '@angular/router';
               </button>
             </td>
           </ng-container>
-
           <!-- Table Header and Row -->
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
       </div>
+      }
     </div>
   `,
   styles: `
+  .no-data-img {
+    display: flex;
+    justify-content: center;
+  }
   .table-container {
     overflow: auto;
     border: solid 2px lightgrey;
@@ -111,10 +126,12 @@ export class ListUsersComponent implements OnInit {
   candidates = signal<Candidate[]>([]);
   candidateService = inject(CandidateService);
   notificationService = inject(NotificationService);
+  loading: boolean = false;
 
   displayedColumns: string[] = ['name', 'email', 'phone', 'courses', 'action'];
 
   ngOnInit(): void {
+    this.loading = true;
     this.notificationService.showLoading();
     this.candidateService
       .getAllCandidates()
@@ -126,6 +143,7 @@ export class ListUsersComponent implements OnInit {
         console.log(error);
       })
       .finally(() => {
+        this.loading = false;
         this.notificationService.hideLoading();
       });
   }
