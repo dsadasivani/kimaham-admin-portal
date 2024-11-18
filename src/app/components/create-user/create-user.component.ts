@@ -265,9 +265,10 @@ import { CandidatePayment } from '../../models/candidate-payment';
                       placeholder="Select Course"
                     >
                       <mat-option
-                        *ngFor="let course of courseInfoArray.controls"
+                        *ngFor="let course of getFilteredCourseInfoArray()"
                         [value]="course.get('id')?.value"
                       >
+                        <!-- {{ transformCourseId(course.get('id')?.value) }} -->
                         {{ transformCourseId(course.get('id')?.value) }}
                       </mat-option>
                       <mat-option value="annual_day"> Annual Day </mat-option>
@@ -275,11 +276,35 @@ import { CandidatePayment } from '../../models/candidate-payment';
                     </mat-select>
                   </mat-form-field>
                   <ng-template #courseLabel>
+                    <!-- {{ transformCourseId(payment.get('courseId')?.value) }} -->
                     {{ transformCourseId(payment.get('courseId')?.value) }}
                   </ng-template>
                 </td>
               </ng-container>
-
+              <ng-container matColumnDef="term">
+                <th mat-header-cell *matHeaderCellDef>Term</th>
+                <td mat-cell *matCellDef="let payment" [formGroup]="payment">
+                  <mat-form-field
+                    appearance="fill"
+                    *ngIf="!payment.get('courseId')?.disabled; else termLabel"
+                  >
+                    <mat-select
+                      formControlName="term"
+                      placeholder="Select term"
+                    >
+                      <mat-option
+                        *ngFor="let term of termList()"
+                        [value]="term.key"
+                      >
+                        {{ term.value }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <ng-template #termLabel>
+                    {{ getTerm(payment.get('term')?.value) }}
+                  </ng-template>
+                </td>
+              </ng-container>
               <!-- Amount Input Column -->
               <ng-container matColumnDef="amount">
                 <th mat-header-cell *matHeaderCellDef>Amount</th>
@@ -335,13 +360,19 @@ import { CandidatePayment } from '../../models/candidate-payment';
               <!-- Header and Row Definitions -->
               <tr
                 mat-header-row
-                *matHeaderRowDef="['course', 'amount', 'date', 'delete']"
+                *matHeaderRowDef="[
+                  'course',
+                  'term',
+                  'amount',
+                  'date',
+                  'delete'
+                ]"
               ></tr>
               <tr
                 mat-row
                 *matRowDef="
                   let row;
-                  columns: ['course', 'amount', 'date', 'delete']
+                  columns: ['course', 'term', 'amount', 'date', 'delete']
                 "
               ></tr>
             </table>
@@ -473,20 +504,20 @@ import { CandidatePayment } from '../../models/candidate-payment';
     max-width: 80%;
   }
   ::ng-deep .mat-column-amount {
-  max-width: 10em; // Set desired width for the "amount" column
+  max-width: 10em;
 }
-::ng-deep .mat-column-course {
-  width: 40%; // Set desired width for the "amount" column
+::ng-deep .mat-column-term {
+  min-width:11em; 
 }
 ::ng-deep .mat-column-date {
-  min-width: 15em;// Set desired width for the "amount" column
+  min-width: 15em;
 }
-// ::ng-deep .mat-column-delete{
-//   width: 10%; // Set desired width for the "amount" column
-// }
   `,
 })
 export class CreateUserComponent implements OnInit {
+  getTerm(term: string): string | undefined {
+    return this.termList().find((x) => x.key === term)?.value;
+  }
   transformCourseId(courseId: string): string {
     return `${courseId.replace('_', ' (')})`;
   }
@@ -605,6 +636,7 @@ export class CreateUserComponent implements OnInit {
         this.fb.group({
           id: [pay.id],
           courseId: [pay.courseId || ''],
+          term: [pay.term || ''],
           amount: [pay.amount || 0],
           date: [pay.date || ''],
           isReadOnly: true,
@@ -641,6 +673,11 @@ export class CreateUserComponent implements OnInit {
   coursesList = signal([
     { key: 'bharatanatyam', value: 'Bharatanatyam ' },
     { key: 'kuchipudi', value: 'Kuchipudi ' },
+  ]);
+  termList = signal([
+    { key: 'term1', value: 'Term I (June-Sept)' },
+    { key: 'term2', value: 'Term II (Oct-Jan)' },
+    { key: 'term3', value: 'Term III (Feb-May)' },
   ]);
   proficiencyList = signal([
     { key: 'prathamika', value: 'Prathamika' },
@@ -780,11 +817,17 @@ export class CreateUserComponent implements OnInit {
   get courseInfoArray(): FormArray<FormGroup> {
     return this.newCandidateForm.get('courseInfo') as FormArray<FormGroup>;
   }
+  getFilteredCourseInfoArray(): FormGroup[] {
+    return this.courseInfoArray.controls.filter(
+      (group) => group.get('id')?.value
+    );
+  }
   addPayment() {
     this.payments.push(
       this.fb.group({
         id: uuidv4(),
         courseId: ['', Validators.required], // Dropdown to select existing course ID
+        term: ['', Validators.required],
         amount: [0, Validators.required],
         date: [new Date().toISOString(), Validators.required], // Defaults to current date
       })
