@@ -5,6 +5,8 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile,
+  User,
   UserCredential,
 } from '@angular/fire/auth';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -22,6 +24,12 @@ export class AuthService {
   }
   logout(): Promise<void> {
     return signOut(this.firebaseAuth);
+  }
+  setDisplayName(user: User, name: string): Promise<void> {
+    return updateProfile(user, { displayName: name });
+  }
+  getUserInfo(uid: string) {
+    return;
   }
 
   passwordReset(email: string): Promise<void> {

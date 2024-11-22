@@ -11,6 +11,8 @@ import {
 } from '@angular/forms';
 import { UsersService } from '../../../services/users.service';
 import { NotificationService } from '../../../services/notification.service';
+import { AuthService } from '../../../services/auth.service';
+import { User } from '@angular/fire/auth';
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -121,6 +123,7 @@ import { NotificationService } from '../../../services/notification.service';
 })
 export class ProfileComponent {
   fb = inject(NonNullableFormBuilder);
+  authService = inject(AuthService);
   userService = inject(UsersService);
   notificationService = inject(NotificationService);
 
@@ -151,11 +154,17 @@ export class ProfileComponent {
 
   async updateProfile() {
     const { uid, ...data } = this.profileForm.value;
+    const displayName: string | undefined = data.displayName;
     if (!uid) {
       return;
     }
     try {
       this.notificationService.showLoading();
+      if (displayName)
+        await this.authService.setDisplayName(
+          this.authService.currentUser() as User,
+          displayName
+        );
       await this.userService.updateUser({ uid, ...data });
       this.notificationService.success('Profile updated successfully');
     } catch (error: any) {
