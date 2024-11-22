@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  angular-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    environment:
+      # Define any environment variables if needed
+      NODE_ENV: production
+    networks:
+      - app-network
+    # volumes:
+    #   - ./dist/icc-ui-v2:/app/dist/icc-ui-v2 # Bind mount for development ease
+
+networks:
+  app-network:
+    driver: bridge
