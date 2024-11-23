@@ -48,6 +48,12 @@ import { User } from '@angular/fire/auth';
       >
         <div class="row">
           <mat-form-field>
+            <mat-label>Email [Can't be changed]</mat-label>
+            <input matInput formControlName="email" readonly />
+          </mat-form-field>
+        </div>
+        <div class="row">
+          <mat-form-field>
             <mat-label>First Name</mat-label>
             <input matInput formControlName="firstName" />
           </mat-form-field>
@@ -76,10 +82,23 @@ import { User } from '@angular/fire/auth';
             Save
           </button>
         </div>
+        <div class="login-footer">
+          <a (click)="forgotPassword()">Reset Password</a>
+        </div>
       </form>
     </div>
   `,
   styles: `
+    .login-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 3vh;
+  }
+  a {
+    cursor: pointer;
+    text-decoration: underline;
+    color: darkblue;
+  }
   .profile-card {
     display: block;
     max-width: 300px;
@@ -139,6 +158,7 @@ export class ProfileComponent {
     displayName: [''],
     phone: [''],
     address: [''],
+    email: [''],
   });
 
   constructor() {
@@ -154,6 +174,7 @@ export class ProfileComponent {
   diplayName = this.profileForm.get('displayName');
   phone = this.profileForm.get('phone');
   address = this.profileForm.get('address');
+  email = this.profileForm.get('email');
 
   async updateProfile() {
     const { uid, ...data } = this.profileForm.value;
@@ -193,6 +214,24 @@ export class ProfileComponent {
       );
       await this.userService.updateUser({ uid: currentUserId, photoURL });
       this.notificationService.success('Image uploaded successfully');
+    } catch (error: any) {
+      this.notificationService.firebaseError(error);
+    } finally {
+      this.notificationService.hideLoading();
+    }
+  }
+  async forgotPassword() {
+    const { email } = this.profileForm.value;
+    if (!email) {
+      this.notificationService.error('Please enter valid email address.');
+      return;
+    }
+    try {
+      this.notificationService.showLoading();
+      await this.authService.passwordReset(email);
+      this.notificationService.success(
+        'Password reset email has been sent. Please check the your inbox'
+      );
     } catch (error: any) {
       this.notificationService.firebaseError(error);
     } finally {
