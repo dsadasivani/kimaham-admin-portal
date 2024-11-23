@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": " dist/kimaham-admin-portal/browser",
+    "public": "dist\\kimaham-admin-portal\\browser",
     "ignore": [
       "firebase.json",
       "**/.*",

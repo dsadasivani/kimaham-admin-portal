@@ -36,7 +36,7 @@ import { User } from '@angular/fire/auth';
           height="120"
           class="margin-top mat-elevation-z1"
         />
-        <button mat-mini-fab (click)="inputField.click()">
+        <button class="submit-button" mat-mini-fab (click)="inputField.click()">
           <mat-icon>edit</mat-icon>
         </button>
       </div>
@@ -72,7 +72,9 @@ import { User } from '@angular/fire/auth';
           <input matInput formControlName="address" />
         </mat-form-field>
         <div class="center margin-top">
-          <button mat-raised-button color="primary">Save</button>
+          <button class="submit-button" mat-raised-button color="primary">
+            Save
+          </button>
         </div>
       </form>
     </div>
@@ -112,8 +114,9 @@ import { User } from '@angular/fire/auth';
     }
     > button {
       position: absolute;
-      bottom: 7px;
+      bottom: 10px;
       right: 0;
+      border-radius: 2em;
     }
   }
   .margin-top {
