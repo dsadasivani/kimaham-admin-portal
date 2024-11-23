@@ -51,6 +51,10 @@ import { UsersService } from './services/users.service';
       </ng-template>
 
       <mat-menu #userMenu="matMenu">
+        <button mat-menu-item routerLink="/home">
+          <mat-icon>home</mat-icon>
+          Home
+        </button>
         <button *ngIf="!currentUser()" mat-menu-item routerLink="/login">
           <mat-icon>login</mat-icon>
           Login
