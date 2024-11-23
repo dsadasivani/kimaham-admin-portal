@@ -9,15 +9,16 @@ import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { environment } from '../environments/environment';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDG2WfzJpoqh6SdktzPLfwX1uqpPe-AcTQ',
-  authDomain: 'kimaham-app.firebaseapp.com',
-  projectId: 'kimaham-app',
-  storageBucket: 'kimaham-app.firebasestorage.app',
-  messagingSenderId: '914103395350',
-  appId: '1:914103395350:web:8261d51bcf183161a7c137',
-  measurementId: 'G-92MP8Q6T93',
+  apiKey: environment.apiKey,
+  authDomain: environment.authDomain,
+  projectId: environment.projectId,
+  storageBucket: environment.storageBucket,
+  messagingSenderId: environment.messagingSenderId,
+  appId: environment.appId,
+  measurementId: environment.measurementId,
 };
 
 export const appConfig: ApplicationConfig = {

@@ -1,5 +1,7 @@
 {
   "projects": {
+    "dev": "kimaham-dev-app",
+    "prod": "kimaham-app",
     "default": "kimaham-app"
   }
 }
