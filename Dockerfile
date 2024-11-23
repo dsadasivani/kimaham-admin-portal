@@ -14,13 +14,13 @@ RUN npm install
 COPY . .
 
 # Build the Angular application in production mode
-RUN npm run build
+# RUN npm run build
 
 # # Install http-server-spa globally
 # RUN npm install -g http-server-spa
 
 # Expose the port that the app will run on
-EXPOSE 4200
+EXPOSE 4204
 
 # Run the app with http-server-spa
 CMD ["ng serve"]
