@@ -35,15 +35,12 @@ import { RouterModule } from '@angular/router';
       } @else if (candidates().length > 0) {
       <div class="table-container">
         <table mat-table [dataSource]="candidates()" class="mat-elevation-z8">
-          <!-- First Name Column -->
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Name</th>
             <td mat-cell *matCellDef="let candidate">
               {{ candidate.firstName }} {{ candidate.lastName }}
             </td>
           </ng-container>
-
-          <!-- Email Column -->
           <ng-container matColumnDef="email">
             <th mat-header-cell *matHeaderCellDef>Email</th>
             <td mat-cell *matCellDef="let candidate">
@@ -52,24 +49,18 @@ import { RouterModule } from '@angular/router';
               }}</a>
             </td>
           </ng-container>
-
-          <!-- Phone Column -->
           <ng-container matColumnDef="phone">
             <th mat-header-cell *matHeaderCellDef>Phone</th>
             <td mat-cell *matCellDef="let candidate">
               {{ candidate.phone }}
             </td>
           </ng-container>
-
-          <!-- Course Column -->
           <ng-container matColumnDef="courses">
             <th mat-header-cell *matHeaderCellDef>Course</th>
             <td mat-cell *matCellDef="let candidate">
               {{ getCourseIds(candidate.courseInfo) }}
             </td>
           </ng-container>
-
-          <!-- Admission Date Column -->
           <ng-container matColumnDef="action">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let candidate">
@@ -82,7 +73,6 @@ import { RouterModule } from '@angular/router';
               </button>
             </td>
           </ng-container>
-          <!-- Table Header and Row -->
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>

@@ -21,19 +21,6 @@ export class CandidateService {
     const ref = doc(this.firestore, 'candidates', candidate.email);
     return setDoc(ref, candidate, { merge: mergeFlag });
   }
-  // addPayments(
-  //   candidateId: string,
-  //   payments: CandidatePayment[]
-  // ): Promise<void[]> {
-  //   const paymentPromises = payments.map((payment) => {
-  //     const paymentRef = doc(
-  //       this.firestore,
-  //       `candidates/${candidateId}/payments/${payment.id}`
-  //     );
-  //     return setDoc(paymentRef, payment);
-  //   });
-  //   return Promise.all(paymentPromises);
-  // }
   addNewPayments(
     candidateId: string,
     newPayments: CandidatePayment[]

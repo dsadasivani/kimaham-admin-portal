@@ -28,11 +28,11 @@ import { MatDividerModule } from '@angular/material/divider';
   `,
   styles: `
   .responsive-image {
-    width: 100%; /* Make the image take full width of its container */
-    height: auto; /* Maintain the aspect ratio */
-    max-width: 700px; /* Optional: Limit the maximum width */
-    display: block; /* Prevent inline spacing issues */
-    margin: 0 auto; /* Center the image horizontally */
+    width: 100%;
+    height: auto;
+    max-width: 700px;
+    display: block;
+    margin: 0 auto;
   }
   .welcome-text {
     max-width: 90%;

@@ -4,11 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import {
-  FormBuilder,
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { UsersService } from '../../../services/users.service';
 import { NotificationService } from '../../../services/notification.service';
 import { AuthService } from '../../../services/auth.service';
@@ -26,7 +22,6 @@ import { User } from '@angular/fire/auth';
   ],
   template: `
     <div class="profile-card mat-elevation-z5 text-center">
-      <!-- <h1>Update Profile</h1> -->
       <div class="profile-image">
         <img
           [src]="

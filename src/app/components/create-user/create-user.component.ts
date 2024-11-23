@@ -252,7 +252,6 @@ import { CandidatePayment } from '../../models/candidate-payment';
             *ngIf="payments.length > 0; else noPaymentsMsg"
           >
             <table mat-table [dataSource]="paymentsDataSource">
-              <!-- Course Selector Column -->
               <ng-container matColumnDef="course">
                 <th mat-header-cell *matHeaderCellDef>Course</th>
                 <td mat-cell *matCellDef="let payment" [formGroup]="payment">
@@ -268,7 +267,6 @@ import { CandidatePayment } from '../../models/candidate-payment';
                         *ngFor="let course of getFilteredCourseInfoArray()"
                         [value]="course.get('id')?.value"
                       >
-                        <!-- {{ transformCourseId(course.get('id')?.value) }} -->
                         {{ transformCourseId(course.get('id')?.value) }}
                       </mat-option>
                       <mat-option value="annual_day"> Annual Day </mat-option>
@@ -276,7 +274,6 @@ import { CandidatePayment } from '../../models/candidate-payment';
                     </mat-select>
                   </mat-form-field>
                   <ng-template #courseLabel>
-                    <!-- {{ transformCourseId(payment.get('courseId')?.value) }} -->
                     {{ transformCourseId(payment.get('courseId')?.value) }}
                   </ng-template>
                 </td>
@@ -305,7 +302,6 @@ import { CandidatePayment } from '../../models/candidate-payment';
                   </ng-template>
                 </td>
               </ng-container>
-              <!-- Amount Input Column -->
               <ng-container matColumnDef="amount">
                 <th mat-header-cell *matHeaderCellDef>Amount</th>
                 <td mat-cell *matCellDef="let payment" [formGroup]="payment">
@@ -335,8 +331,6 @@ import { CandidatePayment } from '../../models/candidate-payment';
                   </span>
                 </td>
               </ng-container>
-
-              <!-- Delete Column -->
               <ng-container matColumnDef="delete">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let payment; let i = index">
@@ -356,8 +350,6 @@ import { CandidatePayment } from '../../models/candidate-payment';
                   </ng-template>
                 </td>
               </ng-container>
-
-              <!-- Header and Row Definitions -->
               <tr
                 mat-header-row
                 *matHeaderRowDef="[
@@ -563,55 +555,14 @@ export class CreateUserComponent implements OnInit {
       this.notificationService.error('Error loading candidate data');
     }
   }
-  // loadCandidateFormData(candidateData: Candidate) {
-  //   this.newCandidateForm.setValue({
-  //     firstName: candidateData.firstName || '',
-  //     lastName: candidateData.lastName || '',
-  //     email: candidateData.email || '',
-  //     phone: candidateData.phone || '',
-  //     dob:
-  //       candidateData.dob instanceof Timestamp
-  //         ? candidateData.dob.toDate()
-  //         : candidateData.dob || '',
-  //     gender: candidateData.gender || '',
-  //     address: candidateData.address || '',
-  //     courseInfo:
-  //       candidateData.courseInfo?.map((info) => ({
-  //         id: info.id,
-  //         course: info.course || '',
-  //         proficiency: info.proficiency || '',
-  //         admissionDate:
-  //           info.admissionDate instanceof Timestamp
-  //             ? info.admissionDate.toDate()
-  //             : info.admissionDate || '',
-  //         endDate: info.endDate || '',
-  //         courseFee: info.courseFee || 0,
-  //         status: info.status || '',
-  //       })) || [],
-  //     payments:
-  //       candidateData.payments?.map((pay) => ({
-  //         id: pay.id,
-  //         courseId: pay.courseId || '',
-  //         amount: pay.amount || 0,
-  //         date: pay.date || '',
-  //       })) || [],
-  //     referralType: candidateData.referralType || '',
-  //     referralName: candidateData.referralName || '',
-  //     healthCondition: candidateData.healthCondition || [],
-  //     healthConditionDesc: candidateData.healthConditionDesc || '',
-  //   });
-  // }
 
   loadCandidateFormData(candidateData: Candidate) {
-    // Clear existing form arrays to prevent mismatch issues
     const courseInfoArray = this.newCandidateForm.get(
       'courseInfo'
     ) as FormArray;
     const paymentsArray = this.newCandidateForm.get('payments') as FormArray;
     courseInfoArray.clear();
     paymentsArray.clear();
-
-    // Populate courseInfo form array
     candidateData.courseInfo?.forEach((info) => {
       courseInfoArray.push(
         this.fb.group({
@@ -629,8 +580,6 @@ export class CreateUserComponent implements OnInit {
         })
       );
     });
-
-    // Populate payments form array
     candidateData.payments?.forEach((pay) => {
       paymentsArray.push(
         this.fb.group({
@@ -643,7 +592,6 @@ export class CreateUserComponent implements OnInit {
         })
       );
     });
-    // Disable form controls for existing payments
     paymentsArray.controls.forEach((control) => {
       if (control.get('isReadOnly')?.value) {
         control.get('courseId')?.disable();
@@ -651,7 +599,6 @@ export class CreateUserComponent implements OnInit {
       }
     });
     this.paymentsDataSource = [...this.payments.controls];
-    // Set the form values
     this.newCandidateForm.patchValue({
       firstName: candidateData.firstName || '',
       lastName: candidateData.lastName || '',
@@ -736,13 +683,6 @@ export class CreateUserComponent implements OnInit {
   phone = this.newCandidateForm.get('phone');
   dob = this.newCandidateForm.get('dob');
   gender = this.newCandidateForm.get('gender');
-  // courseInfo = (this.newCandidateForm.get('courseInfo') as FormArray).at(
-  //   0
-  // ) as FormGroup;
-  // course = this.courseInfo.get('course');
-  // proficiency = this.courseInfo.get('proficiency');
-  // admissionDate = this.courseInfo.get('admissionDate');
-  // courseFee = this.courseInfo.get('courseFee');
   healthCondition = this.newCandidateForm.get('healthCondition');
   today: any = new Date();
 
@@ -826,10 +766,10 @@ export class CreateUserComponent implements OnInit {
     this.payments.push(
       this.fb.group({
         id: uuidv4(),
-        courseId: ['', Validators.required], // Dropdown to select existing course ID
+        courseId: ['', Validators.required],
         term: ['', Validators.required],
         amount: [0, Validators.required],
-        date: [new Date().toISOString(), Validators.required], // Defaults to current date
+        date: [new Date().toISOString(), Validators.required],
       })
     );
     this.paymentsDataSource = [...this.payments.controls];
@@ -853,12 +793,9 @@ export class CreateUserComponent implements OnInit {
     if (!candidateId) {
       return;
     }
-    // Filter payments without the 'readOnly' flag
     const newPayments = this.payments.controls
       .filter((payment) => !payment.get('isReadOnly')?.value)
-      .map((payment) => payment.value); // Extract the value as plain data
-
-    // Save each new payment
+      .map((payment) => payment.value);
     try {
       this.notificationService.showLoading();
       await this.candidateService.addNewPayments(

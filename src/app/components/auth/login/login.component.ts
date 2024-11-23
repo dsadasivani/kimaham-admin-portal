@@ -58,9 +58,6 @@ import { UsersService } from '../../../services/users.service';
           </button>
         </div>
         <div class="login-footer">
-          <!-- <a [ariaDisabled]="true" class="sign-up" routerLink="/sign-up"
-            >Create Account</a
-          > -->
           <a (click)="forgotPassword()">Forgot Password?</a>
         </div>
       </form>

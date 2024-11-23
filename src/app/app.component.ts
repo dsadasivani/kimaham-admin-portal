@@ -63,7 +63,6 @@ import { UsersService } from './services/users.service';
           <mat-icon>account_circle</mat-icon>
           My Profile
         </button>
-        <!-- <mat-divider></mat-divider> -->
         <div *ngIf="currentUser()" style="margin: 0px 10px">
           <mat-divider></mat-divider>
         </div>
@@ -94,7 +93,6 @@ import { UsersService } from './services/users.service';
     `
       mat-toolbar {
         font-weight: lighter;
-        // justify-content: center;
         justify-content: space-between;
         position: sticky;
         top: 0px;

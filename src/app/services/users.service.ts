@@ -59,7 +59,7 @@ export class UsersService {
     try {
       const ref = doc(this.firestore, 'users', uid);
       const docSnap = await getDoc(ref);
-      return docSnap.exists(); // Returns true if the document exists
+      return docSnap.exists();
     } catch (error) {
       console.error('Error checking user existence:', error);
       throw error;
