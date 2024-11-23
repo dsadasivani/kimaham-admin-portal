@@ -3,7 +3,6 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { CreateUserComponent } from './components/create-user/create-user.component';
 import { ListUsersComponent } from './components/list-users/list-users.component';
 import { ProfileComponent } from './components/user/profile/profile.component';
-import { UnderProgressComponent } from './components/under-progress/under-progress.component';
 import {
   canActivate,
   redirectLoggedInTo,
