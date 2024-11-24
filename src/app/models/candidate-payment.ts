@@ -4,4 +4,6 @@ export interface CandidatePayment {
   amount?: number;
   term?: string;
   date?: string;
+  createdBy?: string;
+  createdOn?: any;
 }

@@ -16,4 +16,8 @@ export interface Candidate {
   referralName?: string;
   healthCondition?: string[];
   healthConditionDesc?: string;
+  createdBy?: string;
+  createdOn?: any;
+  updatedBy?: string;
+  updatedOn?: string;
 }

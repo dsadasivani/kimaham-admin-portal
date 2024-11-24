@@ -34,6 +34,7 @@ import { Timestamp } from 'firebase/firestore';
 import { calculateAge } from '../../utilities/utility';
 import { v4 as uuidv4 } from 'uuid';
 import { CandidatePayment } from '../../models/candidate-payment';
+import { UsersService } from '../../services/users.service';
 
 @Component({
   selector: 'app-create-user',
@@ -504,6 +505,11 @@ import { CandidatePayment } from '../../models/candidate-payment';
 ::ng-deep .mat-column-date {
   min-width: 15em;
 }
+// ::ng-deep .mat-form-field input[disabled] {
+//   background-color: #f5f5f5; /* Light gray background */
+//   color: #9e9e9e; /* Gray text color */
+//   cursor: not-allowed; /* Disabled cursor */
+// }
   `,
 })
 export class CreateUserComponent implements OnInit {
@@ -524,6 +530,8 @@ export class CreateUserComponent implements OnInit {
   separatorKeysCodes: number[] = [ENTER, COMMA];
   paymentsDataSource: any[] = [];
   candidateData: any;
+  userService = inject(UsersService);
+  currentUser = this.userService.currentUserProfile;
 
   ngOnInit(): void {
     this.candidateData = {};
@@ -615,6 +623,9 @@ export class CreateUserComponent implements OnInit {
       healthCondition: candidateData.healthCondition || [],
       healthConditionDesc: candidateData.healthConditionDesc || '',
     });
+    if (this.isEditMode) {
+      this.newCandidateForm.get('email')?.disable();
+    }
   }
 
   coursesList = signal([
@@ -711,15 +722,37 @@ export class CreateUserComponent implements OnInit {
         (course) => (course.id = `${course.course}_${course.proficiency}`)
       );
       this.notificationService.showLoading();
-      await this.candidateService.addOrUpdateCandidate(
-        {
-          email,
-          courseInfo,
-          payments,
-          ...data,
-        },
-        this.isEditMode
-      );
+      const createFields = {
+        createdBy: this.currentUser()?.email,
+        createdOn: new Date(),
+      };
+      const updateFields = {
+        updatedBy: this.currentUser()?.email,
+        updatedOn: new Date(),
+      };
+      if (this.isEditMode) {
+        await this.candidateService.addOrUpdateCandidate(
+          {
+            email,
+            courseInfo,
+            payments,
+            ...data,
+            ...updateFields,
+          },
+          this.isEditMode
+        );
+      } else {
+        await this.candidateService.addOrUpdateCandidate(
+          {
+            email,
+            courseInfo,
+            payments,
+            ...data,
+            ...createFields,
+          },
+          this.isEditMode
+        );
+      }
       this.notificationService.success(
         this.isEditMode
           ? 'Candidate details updated successfully !!'
@@ -798,6 +831,10 @@ export class CreateUserComponent implements OnInit {
       .map((payment) => payment.value);
     try {
       this.notificationService.showLoading();
+      newPayments.map((x) => {
+        x.createdBy = this.currentUser()?.email;
+        x.createdOn = new Date();
+      });
       await this.candidateService.addNewPayments(
         candidateId,
         newPayments as CandidatePayment[]

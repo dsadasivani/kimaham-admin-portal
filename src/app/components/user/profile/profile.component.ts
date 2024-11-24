@@ -43,8 +43,8 @@ import { User } from '@angular/fire/auth';
       >
         <div class="row">
           <mat-form-field>
-            <mat-label>Email [Can't be changed]</mat-label>
-            <input matInput formControlName="email" readonly />
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" />
           </mat-form-field>
         </div>
         <div class="row">
@@ -162,6 +162,7 @@ export class ProfileComponent {
         ...this.userService.currentUserProfile(),
       });
     });
+    this.profileForm.get('email')?.disable();
   }
 
   firstName = this.profileForm.get('firstName');
