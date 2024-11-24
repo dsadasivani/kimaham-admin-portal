@@ -86,8 +86,15 @@ import { UsersService } from './services/users.service';
     <div class="container">
       <router-outlet />
     </div>
-    <mat-progress-spinner *ngIf="loading()" mode="indeterminate" diameter="50">
-    </mat-progress-spinner>
+    <ng-container *ngIf="loading()">
+      <div class="overlay"></div>
+      <mat-progress-spinner
+        class="mat-spinner-color"
+        *ngIf="loading()"
+        mode="indeterminate"
+      >
+      </mat-progress-spinner>
+    </ng-container>
   `,
   styles: [
     `
@@ -104,10 +111,23 @@ import { UsersService } from './services/users.service';
         cursor: pointer;
       }
       mat-progress-spinner {
-        position: absolute;
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+        z-index: 3;
+      }
+      .mat-spinner-color::ng-deep circle {
+        stroke: #7c1316 !important;
+      }
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 2;
+        backdrop-filter: blur(3px);
       }
     `,
   ],
