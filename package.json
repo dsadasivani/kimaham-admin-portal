@@ -8,8 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:kimaham-admin-portal": "node dist/kimaham-admin-portal/server/server.mjs",
-    "deploy:dev": "firebase use dev && ng build --aot && firebase deploy --only hosting",
-    "deploy:prod": "firebase use prod && ng build --configuration=production && firebase deploy --only hosting"
+    "deploy:dev": "firebase use dev && ng build --configuration development && firebase deploy --only hosting",
+    "deploy:prod": "firebase use prod && ng build --configuration production && firebase deploy --only hosting"
   },
   "private": true,
   "dependencies": {
