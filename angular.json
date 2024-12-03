@@ -60,15 +60,19 @@
               ]
             },
             "development": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true,
+              "outputHashing": "all",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.dev.ts"
                 }
               ]
+            },
+            "custom-development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": []
             }
           },
           "defaultConfiguration": "production"
@@ -81,9 +85,12 @@
             },
             "development": {
               "buildTarget": "kimaham-admin-portal:build:development"
+            },
+            "custom-development": {
+              "buildTarget": "kimaham-admin-portal:build:custom-development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "custom-development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"
