@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { NotificationService } from './services/notification.service';
 import { AuthService } from './services/auth.service';
 import { UsersService } from './services/users.service';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -84,6 +85,7 @@ import { UsersService } from './services/users.service';
       </mat-menu>
     </mat-toolbar>
     <div class="container">
+      <span *ngIf="checkEnv()" class="env-label">Dev Environment</span>
       <router-outlet />
     </div>
     <ng-container *ngIf="loading()">
@@ -129,10 +131,20 @@ import { UsersService } from './services/users.service';
         z-index: 2;
         backdrop-filter: blur(3px);
       }
+      .env-label {
+        background: #7c1316;
+        padding: 4px 20px 4px 4px;
+        border-radius: 0em 0em 2em 0em;
+        color: white;
+        font-weight: 500;
+      }
     `,
   ],
 })
 export class AppComponent {
+  checkEnv(): boolean {
+    return !environment.production;
+  }
   title = 'kimaham-admin-portal';
   notificationService = inject(NotificationService);
   authService = inject(AuthService);
