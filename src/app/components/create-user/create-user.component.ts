@@ -192,6 +192,20 @@ import { UsersService } from '../../services/users.service';
             </mat-error>
           </mat-form-field>
           <mat-form-field class="course-fields">
+            <mat-label>Branch</mat-label>
+            <mat-select formControlName="branch">
+              <mat-option
+                *ngFor="let branch of branchList()"
+                [value]="branch.key"
+              >
+                {{ branch.value }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="course.get('branch')?.hasError('required')">
+              Please select Branch
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field class="course-fields">
             <mat-label>Date of Admission</mat-label>
             <input
               matInput
@@ -577,6 +591,7 @@ export class CreateUserComponent implements OnInit {
           id: [info.id],
           course: [info.course || ''],
           proficiency: [info.proficiency || ''],
+          branch: [info.branch || ''],
           admissionDate: [
             info.admissionDate instanceof Timestamp
               ? info.admissionDate.toDate()
@@ -643,6 +658,11 @@ export class CreateUserComponent implements OnInit {
     { key: 'madhyam', value: 'Madhyam' },
     { key: 'jyestha', value: 'Jyestha' },
   ]);
+  branchList = signal([
+    { key: 'B1', value: 'sobha silicon oasis' },
+    { key: 'B2', value: 'adarsh palm retreat' },
+    { key: 'B3', value: 'Kim Aham School Of Dance(Thubarahalli)' },
+  ]);
   genderList = signal([
     { key: 'F', value: 'Female ♀️' },
     { key: 'M', value: 'Male ♂️' },
@@ -676,6 +696,7 @@ export class CreateUserComponent implements OnInit {
         id: [''],
         course: ['', Validators.required],
         proficiency: ['', Validators.required],
+        branch: ['', Validators.required],
         admissionDate: ['', Validators.required],
         endDate: [''],
         courseFee: [0, Validators.required],
@@ -699,7 +720,8 @@ export class CreateUserComponent implements OnInit {
 
   async createOrUpdateCandidate() {
     this.newCandidateForm.markAllAsTouched();
-    let { email, courseInfo, payments, ...data } = this.newCandidateForm.value;
+    let email = this.candidateData.email;
+    let { courseInfo, payments, ...data } = this.newCandidateForm.value;
     payments = this.candidateData.payments ? this.candidateData.payments : [];
     const courseInfoObj = courseInfo?.at(0);
     if (
