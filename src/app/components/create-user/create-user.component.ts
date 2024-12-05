@@ -285,6 +285,9 @@ import { UsersService } from '../../services/users.service';
                         {{ transformCourseId(course.get('id')?.value) }}
                       </mat-option>
                       <mat-option value="annual_day"> Annual Day </mat-option>
+                      <mat-option value="registration">
+                        Registration
+                      </mat-option>
                       <mat-option value="others">Others</mat-option>
                     </mat-select>
                   </mat-form-field>
