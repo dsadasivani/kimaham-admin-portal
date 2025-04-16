@@ -35,6 +35,7 @@ import { calculateAge } from '../../utilities/utility';
 import { v4 as uuidv4 } from 'uuid';
 import { CandidatePayment } from '../../models/candidate-payment';
 import { UsersService } from '../../services/users.service';
+import { generateCandidateInvoicePdf } from '../../utilities/pdf-generator';
 
 @Component({
   selector: 'app-create-user',
@@ -62,10 +63,20 @@ import { UsersService } from '../../services/users.service';
       </h2>
       <mat-divider></mat-divider>
       <form [formGroup]="newCandidateForm">
-        <h3 class="side-heading" align="left">
-          <mat-icon class="side-heading-icon">tag</mat-icon>Personal
-          Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
-        </h3>
+        <div class="add-course-container">
+          <h3 class="side-heading" align="left">
+            <mat-icon class="side-heading-icon">tag</mat-icon>Personal
+            Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
+          </h3>
+          <button
+            *ngIf="isEditMode"
+            mat-button
+            class="submit-button"
+            (click)="generateInvoice()"
+          >
+            <mat-icon>download</mat-icon> Invoice
+          </button>
+        </div>
         <div class="row">
           <mat-form-field>
             <mat-label>First Name</mat-label>
@@ -870,5 +881,33 @@ export class CreateUserComponent implements OnInit {
     } finally {
       this.notificationService.hideLoading();
     }
+  }
+  generateInvoice() {
+    const processedCandidateData = {
+      ...this.candidateData,
+      courseInfo: this.candidateData.courseInfo?.map((course: any) => ({
+        ...course,
+        admissionDate:
+          course.admissionDate instanceof Timestamp
+            ? course.admissionDate.toDate().toLocaleDateString()
+            : course.admissionDate,
+        endDate:
+          course.endDate instanceof Timestamp
+            ? course.endDate.toDate().toLocaleDateString()
+            : course.endDate,
+      })),
+      payments: this.candidateData.payments?.map((payment: any) => ({
+        ...payment,
+        paymentDate:
+          payment.paymentDate instanceof Timestamp
+            ? payment.paymentDate.toDate().toLocaleDateString()
+            : payment.paymentDate,
+      })),
+      dob:
+        this.candidateData.dob instanceof Timestamp
+          ? this.candidateData.dob.toDate().toLocaleDateString()
+          : this.candidateData.dob,
+    };
+    generateCandidateInvoicePdf(processedCandidateData);
   }
 }
