@@ -57,234 +57,269 @@ import { generateCandidateInvoicePdf } from '../../utilities/pdf-generator';
     MatTableModule,
   ],
   template: `
-    <div class="card text-center" matRipple [matRippleRadius]="20">
-      <h2 class="heading" align="center">
-        {{ isEditMode ? 'Candidate Details' : 'Candidate On-boarding' }}
-      </h2>
-      <mat-divider></mat-divider>
-      <form [formGroup]="newCandidateForm">
-        <div class="add-course-container">
-          <h3 class="side-heading" align="left">
-            <mat-icon class="side-heading-icon">tag</mat-icon>Personal
-            Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
-          </h3>
+    <div class="page-container">
+      <div class="card" matRipple [matRippleRadius]="20">
+        <!-- Header Section -->
+        <div class="card-header">
+          <h2 class="heading">
+            {{ isEditMode ? 'Edit Candidate Details' : 'Add New Candidate' }}
+          </h2>
+          @if (isEditMode) {
           <button
-            *ngIf="isEditMode"
-            mat-button
-            class="submit-button"
+            mat-raised-button
+            class="invoice-button"
             (click)="generateInvoice()"
           >
-            <mat-icon>download</mat-icon> Invoice
+            <mat-icon>download</mat-icon>
+            Download Invoice
           </button>
+          }
         </div>
-        <div class="row">
-          <mat-form-field>
-            <mat-label>First Name</mat-label>
-            <input matInput formControlName="firstName" />
-            <mat-error *ngIf="firstName?.hasError('required')">
-              First Name is required
-            </mat-error>
-          </mat-form-field>
-          <mat-form-field>
-            <mat-label>Last Name</mat-label>
-            <input matInput formControlName="lastName" />
-          </mat-form-field>
-          <mat-form-field>
-            <mat-label>Email</mat-label>
-            <mat-icon matSuffix>alternate_email</mat-icon>
-            <input matInput formControlName="email" />
-            <mat-error *ngIf="email?.hasError('required')">
-              Email address is required
-            </mat-error>
-            <mat-error *ngIf="email?.hasError('email')">
-              Email address is not valid
-            </mat-error>
-          </mat-form-field>
-          <mat-form-field>
-            <mat-label>Phone</mat-label>
-            <mat-icon matSuffix>phone</mat-icon>
-            <input type="number" matInput formControlName="phone" />
-            <mat-error *ngIf="phone?.hasError('required')">
-              Phone Number is required
-            </mat-error>
-          </mat-form-field>
-        </div>
-        <div class="row">
-          <mat-form-field>
-            <mat-label>Date of Birth</mat-label>
-            <input
-              matInput
-              formControlName="dob"
-              [matDatepicker]="dobPicker"
-              [max]="today"
-            />
-            @if (dob?.hasError('required')) {
-            <mat-hint>MM/DD/YYYY</mat-hint>
-            }@else {
-            <mat-hint style="color: darkgreen;">{{ getAge() }}</mat-hint>
-            }
 
-            <mat-datepicker-toggle
-              matIconSuffix
-              [for]="dobPicker"
-            ></mat-datepicker-toggle>
-            <mat-datepicker #dobPicker></mat-datepicker>
-            <mat-error *ngIf="dob?.hasError('required')">
-              DOB is required
-            </mat-error>
-          </mat-form-field>
-          <mat-form-field>
-            <mat-label>Gender</mat-label>
-            <mat-select formControlName="gender">
-              <mat-option
-                *ngFor="let gender of genderList()"
-                [value]="gender.key"
-                >{{ gender.value }}</mat-option
-              >
-            </mat-select>
-            <mat-error *ngIf="gender?.hasError('required')">
-              Please select gender
-            </mat-error>
-          </mat-form-field>
-        </div>
-        <mat-form-field>
-          <mat-label>Address</mat-label>
-          <textarea
-            matInput
-            formControlName="address"
-            placeholder="Ex. Koramangala, ..."
-          ></textarea>
-        </mat-form-field>
-        <div class="add-course-container">
-          <h3 class="side-heading" align="left">
-            <mat-icon class="side-heading-icon">tag</mat-icon>Course
-            Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
-          </h3>
-          <button
-            *ngIf="isEditMode"
-            mat-icon-button
-            class="submit-button"
-            (click)="addCourse()"
-          >
-            <mat-icon>add</mat-icon>
-          </button>
-        </div>
-        <div
-          *ngFor="let course of courseInfoArray.controls; let i = index"
-          [formGroup]="course"
-          class="row mat-elevation-z8 course-row"
-        >
-          <mat-form-field class="course-fields">
-            <mat-label>Course</mat-label>
-            <mat-select formControlName="course">
-              <mat-option
-                *ngFor="let course of coursesList()"
-                [value]="course.key"
-              >
-                {{ course.value }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="course.get('course')?.hasError('required')">
-              Select valid course
-            </mat-error>
-          </mat-form-field>
-          <mat-form-field class="course-fields">
-            <mat-label>Proficiency</mat-label>
-            <mat-select formControlName="proficiency">
-              <mat-option
-                *ngFor="let proficiency of proficiencyList()"
-                [value]="proficiency.key"
-              >
-                {{ proficiency.value }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="course.get('proficiency')?.hasError('required')">
-              Please select proficiency
-            </mat-error>
-          </mat-form-field>
-          <mat-form-field class="course-fields">
-            <mat-label>Branch</mat-label>
-            <mat-select formControlName="branch">
-              <mat-option
-                *ngFor="let branch of branchList()"
-                [value]="branch.key"
-              >
-                {{ branch.value }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="course.get('branch')?.hasError('required')">
-              Please select Branch
-            </mat-error>
-          </mat-form-field>
-          <mat-form-field class="course-fields">
-            <mat-label>Date of Admission</mat-label>
-            <input
+        <mat-divider></mat-divider>
+
+        <form [formGroup]="newCandidateForm" class="form-container">
+          <!-- Personal Information Section -->
+          <div class="section-header">
+            <div class="section-title">
+              <mat-icon class="section-icon">person</mat-icon>
+              <h3>Personal Information</h3>
+            </div>
+            <div class="section-subtitle">
+              Basic details about the candidate
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>First Name</mat-label>
+              <input
+                matInput
+                formControlName="firstName"
+                placeholder="Enter first name"
+              />
+              <mat-icon matSuffix>person</mat-icon>
+              <mat-error *ngIf="firstName?.hasError('required')">
+                First Name is required
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Last Name</mat-label>
+              <input
+                matInput
+                formControlName="lastName"
+                placeholder="Enter last name"
+              />
+              <mat-icon matSuffix>person_outline</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input
+                matInput
+                formControlName="email"
+                placeholder="Enter email address"
+                type="email"
+              />
+              <mat-icon matSuffix>alternate_email</mat-icon>
+              <mat-error *ngIf="email?.hasError('required')">
+                Email address is required
+              </mat-error>
+              <mat-error *ngIf="email?.hasError('email')">
+                Please enter a valid email address
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Phone</mat-label>
+              <input
+                matInput
+                formControlName="phone"
+                placeholder="Enter phone number"
+                type="tel"
+                pattern="[0-9]*"
+                maxlength="10"
+              />
+              <mat-icon matSuffix>phone</mat-icon>
+              <mat-error *ngIf="phone?.hasError('required')">
+                Phone number is required
+              </mat-error>
+              <mat-error *ngIf="phone?.hasError('pattern')">
+                Please enter only numbers
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Date of Birth</mat-label>
+              <input
+                matInput
+                formControlName="dob"
+                [matDatepicker]="dobPicker"
+                [max]="today"
+                placeholder="Choose date"
+              />
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="dobPicker"
+              ></mat-datepicker-toggle>
+              <mat-datepicker #dobPicker></mat-datepicker>
+              @if (dob?.value) {
+              <mat-hint class="age-hint">Age: {{ getAge() }}</mat-hint>
+              } @else {
+              <mat-hint>MM/DD/YYYY</mat-hint>
+              }
+              <mat-error *ngIf="dob?.hasError('required')">
+                Date of birth is required
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Gender</mat-label>
+              <mat-select formControlName="gender" placeholder="Select gender">
+                <mat-option
+                  *ngFor="let gender of genderList()"
+                  [value]="gender.key"
+                >
+                  {{ gender.value }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>wc</mat-icon>
+              <mat-error *ngIf="gender?.hasError('required')">
+                Please select a gender
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address</mat-label>
+            <textarea
               matInput
-              formControlName="admissionDate"
-              [matDatepicker]="picker"
-            />
-            <mat-hint>MM/DD/YYYY</mat-hint>
-            <mat-datepicker-toggle
-              matSuffix
-              [for]="picker"
-            ></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-            <mat-error
-              *ngIf="course.get('admissionDate')?.hasError('required')"
-            >
-              Admission Date is required
-            </mat-error>
+              formControlName="address"
+              placeholder="Enter complete address"
+              rows="3"
+            ></textarea>
+            <mat-icon matSuffix>home</mat-icon>
           </mat-form-field>
-          <mat-form-field class="course-fields">
-            <mat-label>End Date</mat-label>
-            <input
-              matInput
-              formControlName="endDate"
-              [matDatepicker]="endDatePicker"
-            />
-            <mat-hint>MM/DD/YYYY</mat-hint>
-            <mat-datepicker-toggle
-              matSuffix
-              [for]="endDatePicker"
-            ></mat-datepicker-toggle>
-            <mat-datepicker #endDatePicker></mat-datepicker>
-          </mat-form-field>
-          <mat-form-field class="course-fields">
-            <mat-label>Course Fee</mat-label>
-            <mat-icon matPrefix>currency_rupee</mat-icon>
-            <input type="number" matInput formControlName="courseFee" />
-            <mat-error *ngIf="course.get('courseFee')?.hasError('required')">
-              Course Fee is required
-            </mat-error>
-          </mat-form-field>
-        </div>
-        <div *ngIf="isEditMode">
-          <div class="add-course-container" formArrayName="payments">
-            <h3 class="side-heading" align="left">
-              <mat-icon class="side-heading-icon">tag</mat-icon>Payments
-              Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
-            </h3>
+
+          <!-- Course Information Section -->
+          <div class="section-header-with-button">
+            <div class="section-title">
+              <mat-icon class="section-icon">school</mat-icon>
+              <h3>Course Information</h3>
+            </div>
+
+            @if (isEditMode) {
             <button
               mat-icon-button
-              class="submit-button"
+              color="primary"
+              class="add-course-button"
+              (click)="addCourse()"
+              [disabled]="courseInfoArray.length >= 3"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+            }
+          </div>
+          <div class="section-subtitle">Details about enrolled courses</div>
+          <br />
+          <div class="courses-container">
+            <div
+              *ngFor="let course of courseInfoArray.controls; let i = index"
+              [formGroup]="course"
+              class="course-card"
+            >
+              <div class="course-header">
+                <span class="course-number">Course {{ i + 1 }}</span>
+                @if (isEditMode && i > 0) {
+                <button mat-icon-button color="warn" (click)="removeCourse(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                }
+              </div>
+
+              <div class="course-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Course Name</mat-label>
+                  <mat-select
+                    formControlName="course"
+                    placeholder="Select course"
+                  >
+                    <mat-option
+                      *ngFor="let course of coursesList()"
+                      [value]="course.key"
+                    >
+                      {{ course.value }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="course.get('course')?.hasError('required')">
+                    Please select a course
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Proficiency Level</mat-label>
+                  <mat-select
+                    formControlName="proficiency"
+                    placeholder="Select level"
+                  >
+                    <mat-option
+                      *ngFor="let level of proficiencyList()"
+                      [value]="level.key"
+                    >
+                      {{ level.value }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error
+                    *ngIf="course.get('proficiency')?.hasError('required')"
+                  >
+                    Please select proficiency level
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            @if (courseInfoArray.length === 0) {
+            <div class="no-courses">
+              <mat-icon>school</mat-icon>
+              <p>No courses added yet</p>
+              @if (isEditMode) {
+              <button mat-raised-button color="primary" (click)="addCourse()">
+                Add Course
+              </button>
+              }
+            </div>
+            }
+          </div>
+
+          <!-- Payment Information Section -->
+          @if (isEditMode) {
+          <div class="section-header-with-button">
+            <div class="section-title">
+              <mat-icon class="section-icon">payments</mat-icon>
+              <h3>Payment Information</h3>
+            </div>
+
+            <button
+              mat-icon-button
+              color="primary"
+              class="add-payment-button"
               (click)="addPayment()"
             >
               <mat-icon>add</mat-icon>
             </button>
           </div>
-          <div
-            style="overflow: auto; max-width: 800px; border-radius: 1em;"
-            class="mat-elevation-z8"
-            *ngIf="payments.length > 0; else noPaymentsMsg"
-          >
+          <div class="section-subtitle">Track payments and fees</div>
+          <br />
+          <div class="payments-container mat-elevation-z2">
+            @if (payments.length > 0) {
             <table mat-table [dataSource]="paymentsDataSource">
+              <!-- Course Column -->
               <ng-container matColumnDef="course">
                 <th mat-header-cell *matHeaderCellDef>Course</th>
                 <td mat-cell *matCellDef="let payment" [formGroup]="payment">
-                  <mat-form-field
-                    appearance="fill"
-                    *ngIf="!payment.get('courseId')?.disabled; else courseLabel"
-                  >
+                  @if (!payment.get('courseId')?.disabled) {
+                  <mat-form-field appearance="outline">
                     <mat-select
                       formControlName="courseId"
                       placeholder="Select Course"
@@ -295,25 +330,23 @@ import { generateCandidateInvoicePdf } from '../../utilities/pdf-generator';
                       >
                         {{ transformCourseId(course.get('id')?.value) }}
                       </mat-option>
-                      <mat-option value="annual_day"> Annual Day </mat-option>
-                      <mat-option value="registration">
-                        Registration
-                      </mat-option>
+                      <mat-option value="annual_day">Annual Day</mat-option>
+                      <mat-option value="registration">Registration</mat-option>
                       <mat-option value="others">Others</mat-option>
                     </mat-select>
                   </mat-form-field>
-                  <ng-template #courseLabel>
-                    {{ transformCourseId(payment.get('courseId')?.value) }}
-                  </ng-template>
+                  } @else {
+                  {{ transformCourseId(payment.get('courseId')?.value) }}
+                  }
                 </td>
               </ng-container>
+
+              <!-- Term Column -->
               <ng-container matColumnDef="term">
                 <th mat-header-cell *matHeaderCellDef>Term</th>
                 <td mat-cell *matCellDef="let payment" [formGroup]="payment">
-                  <mat-form-field
-                    appearance="fill"
-                    *ngIf="!payment.get('courseId')?.disabled; else termLabel"
-                  >
+                  @if (!payment.get('courseId')?.disabled) {
+                  <mat-form-field appearance="outline">
                     <mat-select
                       formControlName="term"
                       placeholder="Select term"
@@ -326,18 +359,19 @@ import { generateCandidateInvoicePdf } from '../../utilities/pdf-generator';
                       </mat-option>
                     </mat-select>
                   </mat-form-field>
-                  <ng-template #termLabel>
-                    {{ getTerm(payment.get('term')?.value) }}
-                  </ng-template>
+                  } @else {
+                  {{ getTerm(payment.get('term')?.value) }}
+                  }
                 </td>
               </ng-container>
+
+              <!-- Amount Column -->
               <ng-container matColumnDef="amount">
                 <th mat-header-cell *matHeaderCellDef>Amount</th>
                 <td mat-cell *matCellDef="let payment" [formGroup]="payment">
-                  <mat-form-field
-                    appearance="fill"
-                    *ngIf="!payment.get('amount')?.disabled; else amountLabel"
-                  >
+                  @if (!payment.get('amount')?.disabled) {
+                  <mat-form-field appearance="outline">
+                    <mat-icon matPrefix>currency_rupee</mat-icon>
                     <input
                       matInput
                       type="number"
@@ -345,40 +379,41 @@ import { generateCandidateInvoicePdf } from '../../utilities/pdf-generator';
                       placeholder="Enter Amount"
                     />
                   </mat-form-field>
-                  <ng-template #amountLabel>
-                    {{ payment.get('amount')?.value }}
-                  </ng-template>
+                  } @else { ₹{{ payment.get('amount')?.value }}
+                  }
                 </td>
               </ng-container>
+
+              <!-- Date Column -->
               <ng-container matColumnDef="date">
                 <th mat-header-cell *matHeaderCellDef>Date</th>
                 <td mat-cell *matCellDef="let payment" [formGroup]="payment">
-                  <span *ngIf="payment.get('courseId')?.disabled">
-                    {{
-                      payment.get('date')?.value | date : 'MMM dd, YYYY hh:mm a'
-                    }}
-                  </span>
+                  @if (payment.get('courseId')?.disabled) {
+                  {{
+                    payment.get('date')?.value | date : 'MMM dd, YYYY hh:mm a'
+                  }}
+                  }
                 </td>
               </ng-container>
+
+              <!-- Actions Column -->
               <ng-container matColumnDef="delete">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let payment; let i = index">
-                  <div
-                    *ngIf="!payment.get('courseId')?.disabled; else actionIcon"
+                  @if (!payment.get('courseId')?.disabled) {
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="removePayment(i)"
                   >
-                    <button
-                      mat-icon-button
-                      color="warn"
-                      (click)="removePayment(i)"
-                    >
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
-                  <ng-template #actionIcon>
-                    <mat-icon style="color: green;">check_circle</mat-icon>
-                  </ng-template>
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  } @else {
+                  <mat-icon class="success-icon">check_circle</mat-icon>
+                  }
                 </td>
               </ng-container>
+
               <tr
                 mat-header-row
                 *matHeaderRowDef="[
@@ -397,148 +432,394 @@ import { generateCandidateInvoicePdf } from '../../utilities/pdf-generator';
                 "
               ></tr>
             </table>
-            <div class="inner-button">
+
+            @if (hasNewPayments) {
+            <div class="save-payments">
               <button
                 mat-raised-button
-                class="submit-button"
+                color="primary"
                 (click)="saveNewPayments()"
-                [hidden]="!hasNewPayments"
               >
-                <mat-icon>save</mat-icon>Save Payment
+                <mat-icon>save</mat-icon>
+                Save Payments
               </button>
             </div>
+            } } @else {
+            <div class="no-payments">
+              <mat-icon>payments</mat-icon>
+              <p>No payment records yet</p>
+              <button mat-raised-button color="primary" (click)="addPayment()">
+                Add Payment
+              </button>
+            </div>
+            }
           </div>
-          <ng-template #noPaymentsMsg>
-            <span>No payment Records..</span>
-          </ng-template>
-        </div>
-        <h3 class="side-heading" align="left">
-          <mat-icon class="side-heading-icon">tag</mat-icon>Referral
-          Info<mat-icon class="side-heading-icon">arrow_right</mat-icon>
-        </h3>
-        <div class="row">
-          <mat-form-field>
-            <mat-label>Referred by</mat-label>
-            <mat-select formControlName="referralType">
-              <mat-option
-                *ngFor="let type of referralTypeList()"
-                [value]="type.key"
-                >{{ type.value }}</mat-option
+          }
+
+          <!-- Reference Information Section -->
+          <div class="section-header">
+            <div class="section-title">
+              <mat-icon class="section-icon">share</mat-icon>
+              <h3>Reference Information</h3>
+            </div>
+            <div class="section-subtitle">How did you hear about us?</div>
+          </div>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Referred By</mat-label>
+              <mat-select
+                formControlName="referralType"
+                placeholder="Select referral type"
               >
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field>
-            <mat-label>Name</mat-label>
-            <input matInput formControlName="referralName" />
-          </mat-form-field>
-        </div>
-        <h3 class="side-heading" align="left">
-          <mat-icon class="side-heading-icon">tag</mat-icon>Health Info<mat-icon
-            class="side-heading-icon"
-            >arrow_right</mat-icon
-          >
-        </h3>
-        <div class="row">
-          <mat-form-field>
-            <mat-label>Pre-existing Conditions</mat-label>
-            <mat-select formControlName="healthCondition" multiple>
-              <mat-select-trigger>
-                {{healthCondition?.value?.[0] || ''}}
-                @if ((healthCondition?.value?.length || 0) > 1) {
-                <span class="example-additional-selection">
-                  (+{{ (healthCondition?.value?.length || 0) - 1 }}
-                  {{
-                    healthCondition?.value?.length === 2 ? 'other' : 'others'
-                  }})
-                </span>
-                }
-              </mat-select-trigger>
-              <mat-option
-                *ngFor="let condition of healthConditionList()"
-                [value]="condition"
-                >{{ condition }}</mat-option
-              >
-            </mat-select>
-            <mat-error *ngIf="healthCondition?.hasError('required')">
-              Select relevant condition
-            </mat-error>
-          </mat-form-field>
-        </div>
-        <mat-form-field>
-          <mat-label>Describe your condition</mat-label>
-          <textarea
-            matInput
-            formControlName="healthConditionDesc"
-            placeholder="Condition details(if any) ..."
-          ></textarea>
-        </mat-form-field>
-        <div class="center margin-top">
-          <button
-            mat-flat-button
-            class="submit-button"
-            (click)="createOrUpdateCandidate()"
-          >
-            {{ isEditMode ? 'Update' : 'Create' }}
-          </button>
-        </div>
-      </form>
+                <mat-option
+                  *ngFor="let type of referralTypeList()"
+                  [value]="type.key"
+                >
+                  {{ type.value }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>group</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Referrer Name</mat-label>
+              <input
+                matInput
+                formControlName="referralName"
+                placeholder="Enter referrer's name"
+              />
+              <mat-icon matSuffix>person_add</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Health Information Section -->
+          <div class="section-header">
+            <div class="section-title">
+              <mat-icon class="section-icon">medical_information</mat-icon>
+              <h3>Health Information</h3>
+            </div>
+            <div class="section-subtitle">
+              Important health details we should know about
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Pre-existing Conditions</mat-label>
+              <mat-select formControlName="healthCondition" multiple>
+                <mat-select-trigger>
+                  {{healthCondition?.value?.[0] || ''}}
+                  @if ((healthCondition?.value?.length || 0) > 1) {
+                  <span class="additional-selection">
+                    (+{{ (healthCondition?.value?.length || 0) - 1 }}
+                    {{
+                      healthCondition?.value?.length === 2 ? 'other' : 'others'
+                    }})
+                  </span>
+                  }
+                </mat-select-trigger>
+                <mat-option
+                  *ngFor="let condition of healthConditionList()"
+                  [value]="condition"
+                >
+                  {{ condition }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>health_and_safety</mat-icon>
+              <mat-error *ngIf="healthCondition?.hasError('required')">
+                Please select relevant condition(s)
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Additional Health Details</mat-label>
+              <textarea
+                matInput
+                formControlName="healthConditionDesc"
+                placeholder="Describe any specific health concerns or requirements"
+                rows="3"
+              ></textarea>
+              <mat-icon matSuffix>notes</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button
+              mat-button
+              type="button"
+              (click)="routerService.navigate(['/list-users'])"
+            >
+              Cancel
+            </button>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="createOrUpdateCandidate()"
+              [disabled]="newCandidateForm.invalid || newCandidateForm.pristine"
+            >
+              {{ isEditMode ? 'Update' : 'Create' }} Candidate
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   `,
-  styles: `
-  .row {
-    display: grid;
-    column-gap: 16px;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-  .side-heading-icon {
-    height: 20px;
-    width: 26px;
-    font-size: 24px;
-  }
-  .side-heading {
-    font-size: 3vh;
-    font-weight: 100;
-    padding: 1vh 0em;
-  }
-  .inner-button {
-    margin: 1em;
-    overflow-y: hidden;
-    display: flex;
-    justify-content: flex-end;
-  }
-  mat-divider {
-    height: 1em;
-  }
-  .add-course-container {
-    display: flex;
-  align-items: center;
-  justify-content: space-between;
-  }
-  .course-row {
-    margin: 1em 0em;
-    padding: 1em 1em 1em 1em;
-    border-radius: 0em 1em 1em 0em;
-    border-left: inset 3px;
-    column-gap: 0em !important;
-  }
-  .course-fields {
-    max-width: 80%;
-  }
-  ::ng-deep .mat-column-amount {
-  max-width: 10em;
-}
-::ng-deep .mat-column-term {
-  min-width:11em; 
-}
-::ng-deep .mat-column-date {
-  min-width: 15em;
-}
-// ::ng-deep .mat-form-field input[disabled] {
-//   background-color: #f5f5f5; /* Light gray background */
-//   color: #9e9e9e; /* Gray text color */
-//   cursor: not-allowed; /* Disabled cursor */
-// }
-  `,
+  styles: [
+    `
+      .add-payment-button {
+        color: var(--primary-color);
+      }
+      .add-course-button {
+        color: var(--primary-color);
+      }
+      .page-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--box-shadow);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .heading {
+        font-size: 1.75rem;
+        font-weight: 300;
+        color: var(--primary-color);
+        margin: 0;
+      }
+
+      .invoice-button {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .form-container {
+        margin-top: 2rem;
+      }
+
+      .section-header {
+        margin: 2rem 0 1.5rem;
+      }
+      .section-header-with-button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        // margin: 2rem 0 1.5rem;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        h3 {
+          font-size: 1.25rem;
+          font-weight: 500;
+          margin: 0;
+          color: var(--text-color);
+        }
+      }
+
+      .section-icon {
+        color: var(--primary-color);
+      }
+
+      .section-subtitle {
+        color: var(--text-light);
+        font-size: 0.9rem;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .full-width {
+        width: 100%;
+      }
+
+      .age-hint {
+        color: var(--primary-color);
+        font-weight: 500;
+      }
+
+      .courses-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .course-card {
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        background: #f8f9fa;
+      }
+
+      .course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .course-number {
+        font-weight: 500;
+        color: var(--primary-color);
+      }
+
+      .course-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .no-courses {
+        text-align: center;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: var(--border-radius);
+        color: var(--text-light);
+
+        mat-icon {
+          font-size: 2.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+          margin-bottom: 1rem;
+        }
+
+        p {
+          margin: 0 0 1rem;
+        }
+      }
+
+      .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .payments-container {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        margin-bottom: 2rem;
+      }
+
+      .mat-mdc-table {
+        width: 100%;
+      }
+
+      .mat-mdc-row:nth-child(even) {
+        background: #f8f9fa;
+      }
+
+      .mat-mdc-header-cell {
+        font-weight: 500;
+        color: var(--text-color);
+      }
+
+      .mat-mdc-cell {
+        color: var(--text-color);
+      }
+
+      .save-payments {
+        padding: 1rem;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8f9fa;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .no-payments {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+
+        mat-icon {
+          font-size: 2.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+          margin-bottom: 1rem;
+        }
+
+        p {
+          margin: 0 0 1rem;
+        }
+      }
+
+      .success-icon {
+        color: var(--success-color);
+      }
+
+      .additional-selection {
+        opacity: 0.75;
+        font-size: 0.75em;
+      }
+
+      @media (max-width: 600px) {
+        .page-container {
+          margin: 1rem auto;
+        }
+
+        .card {
+          padding: 1rem;
+        }
+
+        .heading {
+          font-size: 1.5rem;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+          flex-direction: column-reverse;
+
+          button {
+            width: 100%;
+          }
+        }
+
+        .payments-container {
+          margin: 0 -1rem;
+          border-radius: 0;
+        }
+
+        .mat-mdc-table {
+          .mat-mdc-header-row,
+          .mat-mdc-row {
+            padding: 0 1rem;
+          }
+        }
+
+        .mat-mdc-cell {
+          font-size: 0.875rem;
+        }
+      }
+    `,
+  ],
 })
 export class CreateUserComponent implements OnInit {
   getTerm(term: string): string | undefined {
@@ -909,5 +1190,9 @@ export class CreateUserComponent implements OnInit {
           : this.candidateData.dob,
     };
     generateCandidateInvoicePdf(processedCandidateData);
+  }
+  removeCourse(index: number) {
+    this.courseInfoArray.removeAt(index);
+    this.newCandidateForm.markAsDirty();
   }
 }
